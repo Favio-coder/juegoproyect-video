@@ -1,43 +1,42 @@
-import { useState } from "react"
+import { useState } from "react";
 
-import Background from "../components/Background"
-import Logo from "../components/Logo"
-import PlayButton from "../components/PlayButton"
-
-import OnboardingFlow from "../omboarding/OnboardingFlow"
-import type { OnboardingStep } from "../types/menu.types"
+import Background from "../components/Background";
+import Logo from "../components/Logo";
+import PlayButton from "../components/PlayButton";
+import OnboardingFlow from "../omboarding/OnboardingFlow";
+import { useAppStore } from "../../../core/store/appStore";
+import type { OnboardingStep } from "../types/menu.types";
 
 export default function MenuPage() {
-  
-  const [step, setStep] = useState<OnboardingStep>("hidden")
-  
+  const { onboardingStep: savedStep, playerName: savedName, setOnboardingStep, completeOnboarding } = useAppStore();
+
+  const [step, setStep] = useState<OnboardingStep>(() =>
+    savedStep === "name" && savedName ? "name" : savedStep
+  );
+
+  const handleSetStep: React.Dispatch<React.SetStateAction<OnboardingStep>> = (value) => {
+    const newStep = typeof value === "function" ? value(step) : value;
+    setStep(newStep);
+    setOnboardingStep(newStep);
+    if (newStep === "avatar") {
+      completeOnboarding();
+    }
+  };
+
   return (
     <main className="relative min-h-screen overflow-hidden">
+      <Background />
 
-      {/**Fondo */}
-      <Background/>
-
-
-      {/**Contenido */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6">
-        {
-          step==="hidden" && (
-             <>
-                <Logo/>
-                <PlayButton
-                  onClick={() => setStep("name")}
-                />
-             </>
-          )
-        }
-        
-        <OnboardingFlow
-          step={step}
-          setStep={setStep}
-        />
+        {step === "hidden" && (
+          <>
+            <Logo />
+            <PlayButton onClick={() => handleSetStep("name")} />
+          </>
+        )}
 
+        <OnboardingFlow step={step} setStep={handleSetStep} />
       </section>
-
     </main>
-  )
+  );
 }

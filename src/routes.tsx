@@ -1,12 +1,27 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
-import MenuPage from "./features/menu/pages/MenuPage";
-
+const MenuPage = lazy(() => import("./features/menu/pages/MenuPage"));
+const GameplayPage = lazy(() => import("./features/gameplay/pages/GameplayPage"))
+const PhoneCameraPage = lazy(() => import("./features/qr/pages/PhoneCameraPage"))
+const PruebaPage = lazy(() => import("./features/gameplay/pages/PruebaPage"))
 
 export const router = createBrowserRouter([
-    {
-        path: "/",
-        element: <MenuPage />,
-    },
-
+  {
+    path: "/",
+    element: <MenuPage />,
+  },
+  {
+    path: "/juego",
+    element: <GameplayPage />,
+  },
+  {
+    path: "/prueba",
+    element: <PruebaPage />,
+  },
+  {
+    path: "/connect/:sessionId",
+    element: <PhoneCameraPage />,
+  },
 ]);
