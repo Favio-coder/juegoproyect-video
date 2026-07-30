@@ -1,4 +1,5 @@
 import Peer from "peerjs";
+import type { MediaConnection } from "peerjs";
 import type { ConnectionStatus, PeerError } from "../types/connection.types";
 
 type StatusListener = (status: ConnectionStatus) => void;
@@ -11,9 +12,19 @@ const PEERJS_PATH = "/";
 const PEERJS_KEY = "peerjs";
 const PEERJS_DEBUG = 0;
 
+function peerOptions() {
+  return {
+    host: PEERJS_HOST,
+    port: PEERJS_PORT,
+    path: PEERJS_PATH,
+    key: PEERJS_KEY,
+    debug: PEERJS_DEBUG,
+  } as const;
+}
+
 export class PeerService {
   private peer: Peer | null = null;
-  private activeCall: Peer.MediaConnection | null = null;
+  private activeCall: MediaConnection | null = null;
 
   private onStatus: StatusListener | null = null;
   private onStream: StreamListener | null = null;
@@ -32,13 +43,7 @@ export class PeerService {
   createPeer(sessionId: string): void {
     this.destroy();
 
-    this.peer = new Peer(sessionId, {
-      host: PEERJS_HOST,
-      port: PEERJS_PORT,
-      path: PEERJS_PATH,
-      key: PEERJS_KEY,
-      debug: PEERJS_DEBUG,
-    });
+    this.peer = new Peer(sessionId, peerOptions());
 
     this.peer.on("open", () => {
       this.onStatus?.("waiting");
@@ -76,13 +81,7 @@ export class PeerService {
     localStream: MediaStream
   ): Promise<void> {
     if (!this.peer) {
-      this.peer = new Peer(undefined, {
-        host: PEERJS_HOST,
-        port: PEERJS_PORT,
-        path: PEERJS_PATH,
-        key: PEERJS_KEY,
-        debug: PEERJS_DEBUG,
-      });
+      this.peer = new Peer(peerOptions());
 
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(
