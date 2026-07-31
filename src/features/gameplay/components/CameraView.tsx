@@ -1,23 +1,37 @@
+import { useEffect, useRef } from "react";
 import { useCamera } from "../hooks/useCamera";
 import { usePoseDetection } from "../hooks/usePoseDetection";
 import PoseCanvas from "./PoseCanvas";
+import type { PoseResult } from "../types/pose.types";
 
 interface CameraViewProps {
   remoteStream?: MediaStream | null;
+  onPoseResult?: (pose: PoseResult) => void;
 }
 
-export default function CameraView({ remoteStream }: CameraViewProps) {
+export default function CameraView({ remoteStream, onPoseResult }: CameraViewProps) {
   const { videoRef, loading, error } = useCamera(remoteStream);
+  const onPoseCallbackRef = useRef(onPoseResult);
+
+  useEffect(() => {
+    onPoseCallbackRef.current = onPoseResult;
+  }, [onPoseResult]);
 
   const pose = usePoseDetection(videoRef);
+
+  useEffect(() => {
+    if (pose && onPoseCallbackRef.current) {
+      onPoseCallbackRef.current(pose);
+    }
+  }, [pose]);
 
   return (
     <div
       style={{
         position: "relative",
         width: "100%",
-        maxWidth: "900px",
-        margin: "0 auto",
+        height: "100%",
+        display: "flex",
       }}
     >
       <video
@@ -27,8 +41,9 @@ export default function CameraView({ remoteStream }: CameraViewProps) {
         muted
         style={{
           width: "100%",
+          height: "100%",
+          objectFit: "cover",
           display: "block",
-          borderRadius: "16px",
         }}
       />
 
@@ -41,10 +56,10 @@ export default function CameraView({ remoteStream }: CameraViewProps) {
             alignItems: "center",
             justifyContent: "center",
             background: "rgba(0,0,0,0.7)",
-            borderRadius: "16px",
             zIndex: 20,
             color: "white",
-            fontSize: "1.2rem",
+            fontSize: "1.8rem",
+            fontWeight: 700,
           }}
         >
           Abriendo cámara...
@@ -60,10 +75,10 @@ export default function CameraView({ remoteStream }: CameraViewProps) {
             alignItems: "center",
             justifyContent: "center",
             background: "rgba(0,0,0,0.7)",
-            borderRadius: "16px",
             zIndex: 20,
             color: "#ff6b6b",
-            fontSize: "1.2rem",
+            fontSize: "1.8rem",
+            fontWeight: 700,
           }}
         >
           {error}
@@ -72,20 +87,6 @@ export default function CameraView({ remoteStream }: CameraViewProps) {
 
       {!loading && !error && (
         <PoseCanvas pose={pose} videoRef={videoRef} />
-      )}
-
-      {!loading && !error && (
-        <pre
-          style={{
-            color: "black",
-            marginTop: 20,
-            maxHeight: "250px",
-            overflow: "auto",
-            fontSize: "12px",
-          }}
-        >
-          {JSON.stringify(pose, null, 2)}
-        </pre>
       )}
     </div>
   );

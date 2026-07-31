@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useAppStore } from "../../../core/store/appStore";
+
 type Props = {
 
     onContinue: () => void;
@@ -13,6 +15,18 @@ export default function NameStep({
 }: Props) {
 
     const [name, setName] = useState("");
+
+    const saveName = useAppStore((s) => s.setPlayerName);
+
+    const handleContinue = () => {
+
+        if (!name.trim()) return;
+
+        saveName(name.trim());
+
+        onContinue();
+
+    };
 
     return (
 
@@ -72,7 +86,7 @@ export default function NameStep({
 
                 disabled={!name.trim()}
 
-                onClick={onContinue}
+                onClick={handleContinue}
 
                 className="
                     mt-8

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Background from "../components/Background";
 import Logo from "../components/Logo";
@@ -8,6 +9,7 @@ import { useAppStore } from "../../../core/store/appStore";
 import type { OnboardingStep } from "../types/menu.types";
 
 export default function MenuPage() {
+  const navigate = useNavigate();
   const { onboardingStep: savedStep, playerName: savedName, setOnboardingStep, completeOnboarding } = useAppStore();
 
   const [step, setStep] = useState<OnboardingStep>(() =>
@@ -18,9 +20,12 @@ export default function MenuPage() {
     const newStep = typeof value === "function" ? value(step) : value;
     setStep(newStep);
     setOnboardingStep(newStep);
-    if (newStep === "avatar") {
-      completeOnboarding();
-    }
+  };
+
+  const handleFinishOnboarding = () => {
+    completeOnboarding();
+    setOnboardingStep("hidden");
+    navigate("/juego");
   };
 
   return (
@@ -35,7 +40,7 @@ export default function MenuPage() {
           </>
         )}
 
-        <OnboardingFlow step={step} setStep={handleSetStep} />
+        <OnboardingFlow step={step} setStep={handleSetStep} onFinish={handleFinishOnboarding} />
       </section>
     </main>
   );

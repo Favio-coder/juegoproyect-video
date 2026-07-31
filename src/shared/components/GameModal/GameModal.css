@@ -1,0 +1,186 @@
+/* ============================================================
+   GameModal — wooden-board modal system
+   Uses PanelMensaje.svg as a real <img> so content is always
+   pixel-perfectly contained inside the board's inner area.
+   ============================================================ */
+
+/* ---------- Backdrop ---------- */
+.gm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  /* Entry animation */
+  animation: gm-fade-in 0.2s ease both;
+}
+
+@keyframes gm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- Container (avatar + panel + buttons) ---------- */
+.gm-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;                       /* gap controlled per section */
+  animation: gm-pop-in 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes gm-pop-in {
+  from { transform: scale(0.72) translateY(24px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+/* ---------- Avatar (floating above the panel) ---------- */
+.gm-avatar-wrap {
+  /* Overlaps the top edge of the panel */
+  position: relative;
+  z-index: 2;
+  margin-bottom: -20px;   /* pull into the top of the panel */
+}
+
+.gm-avatar {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+  animation: gm-avatar-float 3s ease-in-out infinite;
+}
+
+@keyframes gm-avatar-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* ---------- Panel wrapper ---------- */
+.gm-panel-wrap {
+  position: relative;
+  width: 100%;
+  /* The SVG is 16:9-ish — let height be driven by the image */
+}
+
+/* The wooden board SVG rendered as a real image */
+.gm-panel-bg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Slight drop-shadow for depth */
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.55));
+  user-select: none;
+  pointer-events: none;
+}
+
+/*
+  Content layer — positioned absolutely ON TOP of the SVG.
+
+  These percentage values are tuned to the PanelMensaje.svg inner
+  "board" area (wooden planks region), excluding the leaf decorations
+  at the corners and the bevelled border.
+
+  Adjust top/bottom/left/right if the SVG dimensions change.
+*/
+.gm-panel-content {
+  position: absolute;
+  /* Inner safe area of the wooden panel (empirically tuned) */
+  top: 28%;
+  bottom: 14%;
+  left: 9%;
+  right: 9%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  overflow: hidden;
+  text-align: center;
+}
+
+/* ---------- Typography inside panel ---------- */
+.gm-title {
+  margin: 0;
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 800;
+  color: #fff8e7;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 1px 6px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.gm-message {
+  margin: 0;
+  font-size: clamp(13px, 2.5vw, 16px);
+  color: #ffe9b5;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  line-height: 1.5;
+  max-width: 100%;
+}
+
+/* ---------- Action buttons (below the panel) ---------- */
+.gm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  /* Sits just below the panel with a negative margin to overlap
+     the bottom leaf decorations naturally */
+  margin-top: -8px;
+  position: relative;
+  z-index: 2;
+}
+
+.gm-btn {
+  padding: 14px 44px;
+  border: none;
+  border-radius: 50px;
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.gm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.gm-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Variants */
+.gm-btn--primary {
+  background: linear-gradient(160deg, #4ade80, #16a34a);
+  color: #fff;
+}
+
+.gm-btn--secondary {
+  background: linear-gradient(160deg, #94a3b8, #475569);
+  color: #fff;
+}
+
+.gm-btn--danger {
+  background: linear-gradient(160deg, #f87171, #dc2626);
+  color: #fff;
+}
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width: 480px) {
+  .gm-avatar { width: 80px; height: 80px; }
+  .gm-btn    { padding: 12px 32px; }
+}
