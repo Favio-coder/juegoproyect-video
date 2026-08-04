@@ -26,7 +26,12 @@ export function useAppLoading(): UseAppLoadingReturn {
           { family: "Fredoka", weight: "700" },
         ],
         video: videoMenu,
-        images: [Avatars.pingo.happy, Avatars.pingo.idle],
+        images: [
+          Avatars.pingo.happy,
+          Avatars.pingo.idle,
+          Avatars.rocko.happy,
+          Avatars.rocko.idle,
+        ],
       },
       setProgress
     );

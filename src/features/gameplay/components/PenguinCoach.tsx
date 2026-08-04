@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import happySvg from "../../../assets/avatar/pingo/pingoAlegre.svg";
-import idleSvg from "../../../assets/avatar/pingo/pingoSentado.svg";
-import advisingSvg from "../../../assets/avatar/pingo/PingoAconsejando.svg";
 import panelSvg from "../../../assets/paneles/PanelMensaje.svg";
+import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
 
 interface PenguinCoachProps {
   message: string;
@@ -11,6 +9,7 @@ interface PenguinCoachProps {
 }
 
 export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoachProps) {
+  const { src, name } = useAvatarAsset(mood);
   const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
@@ -32,9 +31,6 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
   const displayedMessage = message.slice(0, charCount);
   const isTyping = charCount < message.length;
 
-  const src =
-    mood === "happy" ? happySvg : mood === "advising" ? advisingSvg : idleSvg;
-
   const isLarge = size === "lg";
 
   if (mood === "advising" || isLarge) {
@@ -54,7 +50,7 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
       >
         <img
           src={src}
-          alt="Pingo"
+          alt={name}
           style={{
             width: avatarSize,
             height: avatarSize,
@@ -134,7 +130,7 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
     >
       <img
         src={src}
-        alt="Pingo"
+        alt={name}
         style={{
           width: 64,
           height: 64,

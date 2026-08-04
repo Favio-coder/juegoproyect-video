@@ -130,12 +130,3 @@ export function getRandomSuccessPhrase(playerName?: string): string {
   }
   return phrase;
 }
-
-const AVATARS = {
-  pingo: {
-    happy: "/src/assets/avatar/pingo/pingoAlegre.svg",
-    idle: "/src/assets/avatar/pingo/pingoSentado.svg",
-  },
-};
-
-export { AVATARS };

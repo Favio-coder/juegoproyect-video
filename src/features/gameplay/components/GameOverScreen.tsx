@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import QRCodeCard from "../../qr/components/QRCodeCard";
 import ConnectionStatus from "../../qr/components/ConnectionStatus";
-import happySvg from "../../../assets/avatar/pingo/pingoAlegre.svg";
 import { useAppStore } from "../../../core/store/appStore";
+import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
 
 interface GameOverScreenProps {
   score: number;
@@ -25,6 +25,7 @@ export default function GameOverScreen({
 
   const [showQR, setShowQR] = useState(false);
   const playerName = useAppStore((s) => s.playerName);
+  const { src: happySvg, name } = useAvatarAsset("happy");
 
   const greeting = playerName && playerName.trim().length > 0 ? playerName.trim() : "Campeón";
 
@@ -92,7 +93,7 @@ export default function GameOverScreen({
 
       <img
         src={happySvg}
-        alt="Pingo feliz"
+        alt={`${name} feliz`}
         style={{
           width: 120,
           height: 120,

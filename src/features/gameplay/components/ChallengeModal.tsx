@@ -1,5 +1,5 @@
-import advisingSvg from "../../../assets/avatar/pingo/PingoAconsejando.svg";
 import GameModal from "../../../shared/components/GameModal/GameModal";
+import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
 import type { PoseChallenge } from "../types/game.types";
 
 interface ChallengeModalProps {
@@ -12,11 +12,13 @@ interface ChallengeModalProps {
  * shared GameModal (wooden-board panel) system.
  */
 export default function ChallengeModal({ challenge, onAccept }: ChallengeModalProps) {
+  const { src, name } = useAvatarAsset("advising");
+
   return (
     <GameModal
       isOpen={true}
-      avatarSrc={advisingSvg}
-      avatarAlt="Pingo aconsejando"
+      avatarSrc={src}
+      avatarAlt={`${name} aconsejando`}
       title={challenge.label}
       message={challenge.description}
       closeOnBackdrop={false}

@@ -1,17 +1,38 @@
 import { useState } from "react";
 
 import { Avatars } from "../../../assets";
+import { useAppStore } from "../../../core/store/appStore";
 
 import AvatarCard from "./AvatarCard";
-import { useAppStore } from "../../../core/store/appStore";
+
+interface AvatarDefinition {
+  id: string;
+  name: string;
+  idleImage: string;
+  selectedImage: string;
+}
+
+const AVATARS: AvatarDefinition[] = [
+  {
+    id: "pingo",
+    name: "Pingo",
+    idleImage: Avatars.pingo.idle,
+    selectedImage: Avatars.pingo.happy,
+  },
+  {
+    id: "rocko",
+    name: "Rocko",
+    idleImage: Avatars.rocko.idle,
+    selectedImage: Avatars.rocko.happy,
+  },
+];
 
 interface AvatarStepProps {
   onContinue: () => void;
 }
 
 export default function AvatarStep({ onContinue }: AvatarStepProps) {
-  const [selectedAvatar, setSelectedAvatar] =
-    useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const saveAvatar = useAppStore((s) => s.setSelectedAvatar);
 
   const handleSelect = (id: string) => {
@@ -44,14 +65,17 @@ export default function AvatarStep({ onContinue }: AvatarStepProps) {
         Cada guardián te acompañará durante toda la aventura.
       </p>
 
-      <div className="mt-10 flex justify-center">
-        <AvatarCard
-          name="Pingo"
-          idleImage={Avatars.pingo.idle}
-          selectedImage={Avatars.pingo.happy}
-          selected={selectedAvatar === "pingo"}
-          onSelect={() => handleSelect("pingo")}
-        />
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
+        {AVATARS.map((avatar) => (
+          <AvatarCard
+            key={avatar.id}
+            name={avatar.name}
+            idleImage={avatar.idleImage}
+            selectedImage={avatar.selectedImage}
+            selected={selectedAvatar === avatar.id}
+            onSelect={() => handleSelect(avatar.id)}
+          />
+        ))}
       </div>
 
       <div className="mt-10 flex justify-center">
