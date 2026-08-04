@@ -1,17 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { AvatarId } from "../utils/avatarAssets";
 
 export type OnboardingStep = "hidden" | "name" | "avatar";
 
 interface AppState {
   onboardingStep: OnboardingStep;
   playerName: string;
-  selectedAvatar: string | null;
+  selectedAvatar: AvatarId | null;
   hasCompletedOnboarding: boolean;
 
   setOnboardingStep: (step: OnboardingStep) => void;
   setPlayerName: (name: string) => void;
-  setSelectedAvatar: (avatar: string | null) => void;
+  setSelectedAvatar: (avatar: AvatarId | null) => void;
   completeOnboarding: () => void;
 }
 

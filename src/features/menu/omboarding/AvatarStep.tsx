@@ -2,11 +2,12 @@ import { useState } from "react";
 
 import { Avatars } from "../../../assets";
 import { useAppStore } from "../../../core/store/appStore";
+import type { AvatarId } from "../../../core/utils/avatarAssets";
 
 import AvatarCard from "./AvatarCard";
 
 interface AvatarDefinition {
-  id: string;
+  id: AvatarId;
   name: string;
   idleImage: string;
   selectedImage: string;
@@ -32,10 +33,10 @@ interface AvatarStepProps {
 }
 
 export default function AvatarStep({ onContinue }: AvatarStepProps) {
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarId | null>(null);
   const saveAvatar = useAppStore((s) => s.setSelectedAvatar);
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: AvatarId) => {
     setSelectedAvatar(id);
     saveAvatar(id);
   };
