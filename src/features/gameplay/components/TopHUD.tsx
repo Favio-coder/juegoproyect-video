@@ -2,14 +2,24 @@ interface TopHUDProps {
   score: number;
   round: number;
   totalRounds: number;
-  elapsed: number;
+  timeLeft: number;
+  reps: number;
+  repsToComplete: number;
 }
 
-export default function TopHUD({ score, round, totalRounds, elapsed }: TopHUDProps) {
+export default function TopHUD({
+  score,
+  round,
+  totalRounds,
+  timeLeft,
+  reps,
+  repsToComplete,
+}: TopHUDProps) {
   const fraction = totalRounds > 0 ? round / totalRounds : 0;
-  const m = Math.floor(elapsed / 60);
-  const s = elapsed % 60;
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
   const timer = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  const lowTime = timeLeft <= 10;
 
   return (
     <div
@@ -93,23 +103,55 @@ export default function TopHUD({ score, round, totalRounds, elapsed }: TopHUDPro
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 6,
+          gap: 12,
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 20 }}>⏱</span>
-        <span
+        <div
           style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: 700,
-            fontVariantNumeric: "tabular-nums",
-            minWidth: 52,
-            textAlign: "right",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "rgba(251,191,36,0.12)",
+            padding: "4px 12px",
+            borderRadius: 999,
+            border: "1px solid rgba(251,191,36,0.3)",
           }}
         >
-          {timer}
-        </span>
+          <span style={{ fontSize: 17 }}>💪</span>
+          <span
+            style={{
+              color: "#fbbf24",
+              fontSize: 17,
+              fontWeight: 800,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {reps}/{repsToComplete}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span style={{ fontSize: 20 }}>⏱</span>
+          <span
+            style={{
+              color: lowTime ? "#ef4444" : "white",
+              fontSize: 20,
+              fontWeight: 700,
+              fontVariantNumeric: "tabular-nums",
+              minWidth: 52,
+              textAlign: "right",
+            }}
+          >
+            {timer}
+          </span>
+        </div>
       </div>
     </div>
   );

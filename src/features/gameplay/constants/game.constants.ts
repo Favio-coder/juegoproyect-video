@@ -1,109 +1,79 @@
-import type { PoseChallenge, GameConfig, PoseId } from "../types/game.types";
-import type { Landmark } from "../types/pose.types";
+import type { PoseChallenge, GameConfig } from "../types/game.types";
 
-function above(a: Landmark, b: Landmark): boolean {
+function above(a: { y: number }, b: { y: number }): boolean {
   return a.y < b.y;
 }
 
-function below(a: Landmark, b: Landmark): boolean {
+function below(a: { y: number }, b: { y: number }): boolean {
   return a.y > b.y;
 }
 
-const CHALLENGES: PoseChallenge[] = [
+export const EXERCISES: PoseChallenge[] = [
   {
-    id: "arms_up",
-    label: "¡Manos arriba!",
-    description: "Levanta ambos brazos sobre tus hombros",
-    emoji: "🙆",
-    validate: (l) =>
-      l[15] && l[16] && l[11] && l[12]
-        ? above(l[15], l[11]) && above(l[16], l[12])
-        : false,
+    id: "jumping_jacks",
+    label: "¡Polichinelas!",
+    description: "Salta abriendo brazos y piernas como una estrella",
+    emoji: "⭐",
+    repsToComplete: 8,
+    timeLimitSeconds: 60,
+    isActive: (l) => {
+      if (!l[11] || !l[12] || !l[15] || !l[16] || !l[27] || !l[28]) return false;
+      const wristsUp = above(l[15], l[11]) && above(l[16], l[12]);
+      const shoulderWidth = Math.abs(l[11].x - l[12].x);
+      const feetApart = Math.abs(l[27].x - l[28].x) > shoulderWidth * 1.8;
+      return wristsUp && feetApart;
+    },
   },
   {
-    id: "right_arm_up",
-    label: "Brazo derecho arriba",
-    description: "Levanta solo tu brazo derecho",
-    emoji: "🤚",
-    validate: (l) =>
-      l[16] && l[12] && l[15] && l[11]
-        ? above(l[16], l[12]) && below(l[15], l[11])
-        : false,
-  },
-  {
-    id: "left_arm_up",
-    label: "Brazo izquierdo arriba",
-    description: "Levanta solo tu brazo izquierdo",
-    emoji: "✋",
-    validate: (l) =>
-      l[15] && l[11] && l[16] && l[12]
-        ? above(l[15], l[11]) && below(l[16], l[12])
-        : false,
-  },
-  {
-    id: "squat",
-    label: "¡Agáchate!",
-    description: "Flexiona las rodillas como si fueras a sentarte",
+    id: "squats",
+    label: "¡Sentadillas!",
+    description: "Agáchate bajando la cadera como si fueras a sentarte",
     emoji: "🦵",
-    validate: (l) => {
+    repsToComplete: 8,
+    timeLimitSeconds: 60,
+    isActive: (l) => {
       const avgHipY = l[23] && l[24] ? (l[23].y + l[24].y) / 2 : 0;
       const avgKneeY = l[25] && l[26] ? (l[25].y + l[26].y) / 2 : 0;
       if (!avgHipY || !avgKneeY) return false;
-      return below({ y: avgHipY } as Landmark, { y: avgKneeY } as Landmark);
+      return below({ y: avgHipY }, { y: avgKneeY });
     },
   },
   {
-    id: "t_pose",
-    label: "¡T-Pose!",
-    description: "Abre los brazos en cruz como una T",
-    emoji: "🤖",
-    validate: (l) => {
-      if (!l[11] || !l[12] || !l[15] || !l[16]) return false;
-      const armsUp = above(l[15], l[11]) && above(l[16], l[12]);
-      const shoulderMidY = (l[11].y + l[12].y) / 2;
-      const wristY = (l[15].y + l[16].y) / 2;
-      const nearShoulder = Math.abs(wristY - shoulderMidY) < 0.15;
-      return armsUp && nearShoulder;
-    },
-  },
-  {
-    id: "one_foot",
-    label: "¡Un pie!",
-    description: "Párate en un solo pie",
-    emoji: "🦩",
-    validate: (l) => {
-      if (!l[27] || !l[28] || !l[25] || !l[26]) return false;
-      const ankleDiff = Math.abs(l[27].y - l[28].y);
-      return ankleDiff > 0.1;
+    id: "march",
+    label: "¡Marcha!",
+    description: "Corre en el lugar levantando bien las rodillas",
+    emoji: "🏃",
+    repsToComplete: 10,
+    timeLimitSeconds: 45,
+    isActive: (l) => {
+      if (!l[23] || !l[24] || !l[25] || !l[26]) return false;
+      const hipY = (l[23].y + l[24].y) / 2;
+      const kneeRaised = above(l[25], { y: hipY }) || above(l[26], { y: hipY });
+      return kneeRaised;
     },
   },
 ];
 
-export function getRandomChallenges(count: number): PoseChallenge[] {
-  const shuffled = [...CHALLENGES].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(count, shuffled.length));
-}
-
-export function getChallengeById(id: PoseId): PoseChallenge | undefined {
-  return CHALLENGES.find((c) => c.id === id);
+export function getExerciseSequence(): PoseChallenge[] {
+  return EXERCISES;
 }
 
 export const GAME_CONFIG: GameConfig = {
-  totalRounds: 5,
+  totalRounds: 3,
   countdownSeconds: 3,
   successDelayMs: 1500,
   checkIntervalMs: 300,
-  baseScore: 100,
+  baseScore: 15,
 };
 
 export const PINGO_SPEECH = {
   intro: [
     "¡Hola! Soy Pingo, tu guardián del movimiento.",
-    "Hoy aprenderemos juntos algunos ejercicios divertidos.",
-    "¿Estás listo para comenzar tu aventura?",
+    "Hoy haremos polichinelas, sentadillas y marcha.",
+    "Completa las repeticiones de cada ejercicio para pasar al siguiente. ¿Listo?",
   ],
   countdown: "Preparándote...",
-  showPose: "¡Intenta hacer esta pose!",
+  showPose: "¡Intenta hacer este ejercicio!",
   success: [
     "¡Excelente! 🎉",
     "¡Muy bien! ⭐",
@@ -111,12 +81,13 @@ export const PINGO_SPEECH = {
     "¡Eres increíble! 💪",
     "¡Sigue así! 🔥",
   ],
+  timeout: "¡Se acabó el tiempo! Sigue practicando 💪",
   gameOver: "¡Lo lograste! Eres un verdadero guardián del movimiento.",
 };
 
 export function getIntroSpeech(playerName?: string): string {
   if (playerName && playerName.trim().length > 0) {
-    return `¡Hola, ${playerName.trim()}! Soy Pingo, tu guardián del movimiento. Hoy aprenderemos juntos algunos ejercicios divertidos. ¿Estás listo para comenzar tu aventura?`;
+    return `¡Hola, ${playerName.trim()}! Soy Pingo, tu guardián del movimiento. Hoy haremos polichinelas, sentadillas y marcha. Completa las repeticiones de cada ejercicio para pasar al siguiente. ¿Estás listo para comenzar tu aventura?`;
   }
   return PINGO_SPEECH.intro.join(" ");
 }

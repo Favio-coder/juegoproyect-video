@@ -1,8 +1,8 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import type { GameState, PoseChallenge } from "../types/game.types";
 import type { PoseResult } from "../types/pose.types";
-import { PoseValidatorService } from "../services/PoseValidatorService";
-import { getRandomChallenges, GAME_CONFIG, getRandomSuccessPhrase } from "../constants/game.constants";
+import { RepCounterService } from "../services/RepCounterService";
+import { getExerciseSequence, GAME_CONFIG, getRandomSuccessPhrase } from "../constants/game.constants";
 import { useAppStore } from "../../../core/store/appStore";
 
 interface UseGameReturn {
@@ -12,16 +12,18 @@ interface UseGameReturn {
   score: number;
   currentChallenge: PoseChallenge | null;
   successPhrase: string;
-  holdProgress: number;
+  reps: number;
+  repsToComplete: number;
+  timeLeft: number;
+  repProgress: number;
   startGame: () => void;
   onCountdownComplete: () => void;
   onChallengeAccept: () => void;
   onPoseResult: (pose: PoseResult) => void;
   onSuccessComplete: () => void;
+  onTimeoutComplete: () => void;
   resetGame: () => void;
 }
-
-const HOLD_MAX = 3;
 
 export function useGame(): UseGameReturn {
   const [state, setState] = useState<GameState>("intro");
@@ -29,41 +31,69 @@ export function useGame(): UseGameReturn {
   const [score, setScore] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState<PoseChallenge | null>(null);
   const [successPhrase, setSuccessPhrase] = useState("");
-  const [holdProgress, setHoldProgress] = useState(0);
+  const [reps, setReps] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
   const playerName = useAppStore((s) => s.playerName);
 
-  const challengesRef = useRef<PoseChallenge[]>([]);
+  const exercisesRef = useRef<PoseChallenge[]>([]);
   const challengeRef = useRef<PoseChallenge | null>(null);
-  const validatorRef = useRef(new PoseValidatorService());
-  const holdCounter = useRef(0);
+  const repCounterRef = useRef(new RepCounterService());
+  const repsRef = useRef(0);
+
+  const totalRounds = GAME_CONFIG.totalRounds;
+  const repsToComplete = currentChallenge?.repsToComplete ?? 0;
+  const repProgress = repsToComplete > 0 ? reps / repsToComplete : 0;
+
+  useEffect(() => {
+    if (state !== "showingPose") return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state]);
+
+  useEffect(() => {
+    if (state === "showingPose" && timeLeft <= 0) {
+      setState("timeout");
+    }
+  }, [state, timeLeft]);
 
   const startGame = useCallback(() => {
-    challengesRef.current = getRandomChallenges(GAME_CONFIG.totalRounds);
+    exercisesRef.current = getExerciseSequence();
     challengeRef.current = null;
-    validatorRef.current.reset();
+    repCounterRef.current.reset();
+    repsRef.current = 0;
     setScore(0);
     setRound(0);
+    setReps(0);
+    setTimeLeft(0);
     setCurrentChallenge(null);
-    holdCounter.current = 0;
-    setHoldProgress(0);
     setState("countdown");
   }, []);
 
   const onCountdownComplete = useCallback(() => {
-    const challenge = challengesRef.current[round];
-    setCurrentChallenge(challenge);
+    const challenge = exercisesRef.current[round];
+    if (!challenge) return;
+
     challengeRef.current = challenge;
-    holdCounter.current = 0;
-    setHoldProgress(0);
+    repCounterRef.current.reset();
+    repsRef.current = 0;
+    setCurrentChallenge(challenge);
+    setReps(0);
+    setTimeLeft(challenge.timeLimitSeconds);
     setState("challengeIntro");
   }, [round]);
 
   const onChallengeAccept = useCallback(() => {
     const challenge = challengeRef.current;
     if (!challenge) return;
-    validatorRef.current.reset(challenge.id);
-    holdCounter.current = 0;
-    setHoldProgress(0);
+
+    repCounterRef.current.reset();
+    repsRef.current = 0;
+    setReps(0);
+    setTimeLeft(challenge.timeLimitSeconds);
     setState("showingPose");
   }, []);
 
@@ -71,67 +101,81 @@ export function useGame(): UseGameReturn {
     (pose: PoseResult) => {
       if (state !== "showingPose" || !currentChallenge || !pose.detected) return;
 
-      const isValid = validatorRef.current.validate(
+      const repCompleted = repCounterRef.current.update(
         currentChallenge,
         pose.landmarks
       );
+      if (!repCompleted) return;
 
-      holdCounter.current = Math.min(
-        holdCounter.current + (isValid ? 1 : 0),
-        HOLD_MAX
-      );
-      setHoldProgress(holdCounter.current / HOLD_MAX);
+      const nextReps = repsRef.current + 1;
+      repsRef.current = nextReps;
+      setReps(nextReps);
+      setScore((prev) => prev + GAME_CONFIG.baseScore);
 
-      if (holdCounter.current >= HOLD_MAX) {
+      if (nextReps >= currentChallenge.repsToComplete) {
         setState("success");
         setSuccessPhrase(getRandomSuccessPhrase(playerName));
-        setScore((prev) => prev + GAME_CONFIG.baseScore);
-        holdCounter.current = 0;
-        setHoldProgress(0);
       }
     },
     [state, currentChallenge, playerName]
   );
 
-  const onSuccessComplete = useCallback(() => {
+  const goToNextRound = useCallback(() => {
     const nextRound = round + 1;
 
-    if (nextRound >= GAME_CONFIG.totalRounds) {
+    if (nextRound >= exercisesRef.current.length) {
       setState("gameOver");
       return;
     }
 
     setRound(nextRound);
     setCurrentChallenge(null);
+    challengeRef.current = null;
+    repsRef.current = 0;
+    setReps(0);
+    setTimeLeft(0);
     setState("countdown");
   }, [round]);
 
+  const onSuccessComplete = useCallback(() => {
+    goToNextRound();
+  }, [goToNextRound]);
+
+  const onTimeoutComplete = useCallback(() => {
+    goToNextRound();
+  }, [goToNextRound]);
+
   const resetGame = useCallback(() => {
-    challengesRef.current = [];
+    exercisesRef.current = [];
     challengeRef.current = null;
-    validatorRef.current.reset();
+    repCounterRef.current.reset();
+    repsRef.current = 0;
     setState("intro");
     setRound(0);
     setScore(0);
+    setReps(0);
+    setTimeLeft(0);
     setCurrentChallenge(null);
     setSuccessPhrase("");
-    holdCounter.current = 0;
-    setHoldProgress(0);
   }, []);
 
   return {
     state,
     round,
-    totalRounds: GAME_CONFIG.totalRounds,
+    totalRounds,
     score,
     currentChallenge,
     successPhrase,
-    holdProgress,
+    reps,
+    repsToComplete,
+    timeLeft,
+    repProgress,
     startGame,
     onCountdownComplete,
     onChallengeAccept,
     onPoseResult,
     onSuccessComplete,
+    onTimeoutComplete,
     resetGame,
   };
 }

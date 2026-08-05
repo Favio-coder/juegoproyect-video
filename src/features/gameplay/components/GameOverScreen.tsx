@@ -102,7 +102,7 @@ export default function GameOverScreen({
       />
 
       <p style={{ color: "#94a3b8", fontSize: 18, textAlign: "center", maxWidth: 360, lineHeight: 1.5 }}>
-        Eres un verdadero guardián del movimiento. Completaste {totalRounds} poses
+        Eres un verdadero guardián del movimiento. Completaste {totalRounds} ejercicios
         y obtuviste
       </p>
 

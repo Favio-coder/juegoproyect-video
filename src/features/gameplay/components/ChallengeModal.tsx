@@ -8,8 +8,8 @@ interface ChallengeModalProps {
 }
 
 /**
- * ChallengeModal — shows the current pose challenge using the
- * shared GameModal (wooden-board panel) system.
+ * ChallengeModal — shows the current exercise using the shared
+ * GameModal (wooden-board panel) system.
  */
 export default function ChallengeModal({ challenge, onAccept }: ChallengeModalProps) {
   const { src, name } = useAvatarAsset("advising");
@@ -20,7 +20,7 @@ export default function ChallengeModal({ challenge, onAccept }: ChallengeModalPr
       avatarSrc={src}
       avatarAlt={`${name} aconsejando`}
       title={challenge.label}
-      message={challenge.description}
+      message={`${challenge.description}. Debes hacer ${challenge.repsToComplete} repeticiones en ${challenge.timeLimitSeconds} segundos.`}
       closeOnBackdrop={false}
       actions={[
         {

@@ -7,22 +7,19 @@ export type GameState =
   | "showingPose"
   | "checkingPose"
   | "success"
+  | "timeout"
   | "gameOver";
 
-export type PoseId =
-  | "arms_up"
-  | "right_arm_up"
-  | "left_arm_up"
-  | "squat"
-  | "t_pose"
-  | "one_foot";
+export type ExerciseId = "jumping_jacks" | "squats" | "march";
 
 export interface PoseChallenge {
-  id: PoseId;
+  id: ExerciseId;
   label: string;
   description: string;
   emoji: string;
-  validate: (landmarks: Landmark[]) => boolean;
+  repsToComplete: number;
+  timeLimitSeconds: number;
+  isActive: (landmarks: Landmark[]) => boolean;
 }
 
 export interface Round {

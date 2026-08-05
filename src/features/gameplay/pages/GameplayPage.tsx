@@ -12,7 +12,6 @@ import LeafProgress from "../components/LeafProgress";
 import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import { useGame } from "../hooks/useGame";
 import { useCountdown } from "../hooks/useCountdown";
-import { useElapsedTime } from "../hooks/useElapsedTime";
 import { GAME_CONFIG, getIntroSpeech } from "../constants/game.constants";
 import { useAppStore } from "../../../core/store/appStore";
 
@@ -23,9 +22,6 @@ export default function GameplayPage() {
   const countdown = useCountdown(GAME_CONFIG.countdownSeconds, () => {
     game.onCountdownComplete();
   });
-
-  const timerRunning = game.state !== "intro" && game.state !== "gameOver";
-  const elapsed = useElapsedTime(timerRunning);
 
   useEffect(() => {
     if (game.state === "countdown") {
@@ -42,6 +38,7 @@ export default function GameplayPage() {
       e.preventDefault();
       if (game.state === "intro") game.startGame();
       else if (game.state === "challengeIntro") game.onChallengeAccept();
+      else if (game.state === "timeout") game.onTimeoutComplete();
     }
   }, [game]);
 
@@ -110,11 +107,14 @@ export default function GameplayPage() {
     );
   }
 
+  const timeout = game.state === "timeout";
   const pingoMessage =
     game.state === "showingPose" || game.state === "checkingPose"
       ? game.currentChallenge?.description ?? ""
       : game.state === "success"
       ? game.successPhrase
+      : game.state === "timeout"
+      ? "¡Se acabó el tiempo! Sigue practicando 💪"
       : "";
 
   const pingoMood = game.state === "success" ? "happy" : game.state === "showingPose" ? "advising" : "idle";
@@ -137,7 +137,9 @@ export default function GameplayPage() {
         score={game.score}
         round={game.state === "success" ? game.round + 1 : game.round}
         totalRounds={game.totalRounds}
-        elapsed={elapsed}
+        timeLeft={game.timeLeft}
+        reps={game.reps}
+        repsToComplete={game.repsToComplete}
       />
 
       <div
@@ -159,8 +161,8 @@ export default function GameplayPage() {
         >
           <CameraView remoteStream={remoteStream} onPoseResult={game.onPoseResult} />
 
-          {game.state === "showingPose" && game.holdProgress > 0 && (
-            <LeafParticles intensity={game.holdProgress} />
+          {game.state === "showingPose" && game.repProgress > 0 && (
+            <LeafParticles intensity={game.repProgress} />
           )}
 
           {game.state === "countdown" && (
@@ -174,6 +176,47 @@ export default function GameplayPage() {
               onComplete={game.onSuccessComplete}
               duration={GAME_CONFIG.successDelayMs}
             />
+          )}
+
+          {game.state === "timeout" && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 60,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 24,
+                background: "rgba(0,0,0,0.5)",
+                padding: 24,
+              }}
+            >
+              <PenguinCoach
+                key="timeout"
+                message="¡Se acabó el tiempo! Sigue practicando 💪"
+                mood="advising"
+              />
+              <button
+                onClick={game.onTimeoutComplete}
+                style={{
+                  padding: "16px 44px",
+                  borderRadius: 16,
+                  border: "none",
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  color: "white",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Continuar
+              </button>
+              <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>
+                Presiona espacio o enter
+              </span>
+            </div>
           )}
 
           {(game.state === "showingPose" || game.state === "success") && (
@@ -195,7 +238,7 @@ export default function GameplayPage() {
             </div>
           )}
 
-          {game.state === "showingPose" && challenge && (
+          {!timeout && game.state === "showingPose" && challenge && (
             <div
               style={{
                 position: "absolute",
@@ -215,7 +258,7 @@ export default function GameplayPage() {
                   gap: 12,
                 }}
               >
-                {/* <span style={{ fontSize: 34 }}>{challenge.emoji}</span> */}
+                <span style={{ fontSize: 22 }}>{challenge.emoji}</span>
                 <span
                   style={{
                     fontSize: 24,
@@ -250,7 +293,33 @@ export default function GameplayPage() {
                 >
                   {challenge.description}
                 </span>
-                <LeafProgress progress={game.holdProgress} />
+                <LeafProgress progress={game.repProgress} />
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 10,
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 40,
+                    fontWeight: 900,
+                    color: "#fbbf24",
+                    fontVariantNumeric: "tabular-nums",
+                    textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {game.reps}
+                </span>
+                <span style={{ fontSize: 26, fontWeight: 700, color: "#94a3b8" }}>
+                  / {game.repsToComplete}
+                </span>
+                <span style={{ fontSize: 22 }}>repeticiones</span>
               </div>
             </div>
           )}
