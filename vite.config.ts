@@ -5,4 +5,5 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig({
   plugins: [tailwindcss(), react(), basicSsl()],
+  assetsInclude: ['**/*.glb', '**/*.gltf'],
 })

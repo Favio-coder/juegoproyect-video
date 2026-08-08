@@ -6,79 +6,123 @@ interface PoseCanvasProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-const POSE_CONNECTIONS: Array<[number, number]> = [
-  [0, 1], [1, 2], [2, 3], [3, 7],
-  [0, 4], [4, 5], [5, 6], [6, 8],
-  [9, 10],
-  [11, 12],
-  [11, 13], [13, 15],
-  [12, 14], [14, 16],
-  [11, 23], [12, 24],
-  [23, 24],
-  [23, 25], [25, 27], [27, 29], [29, 31],
-  [24, 26], [26, 28], [28, 30], [30, 32],
-  [15, 17], [17, 19], [19, 21], [15, 21],
-  [16, 18], [18, 20], [20, 22], [16, 22],
-];
+type Pt = { x: number; y: number };
 
-const VISIBILITY_THRESHOLD = 0.5;
+const DARK = "#1f2937";
+const WHITE = "#f8fafc";
+const ORANGE = "#f59e0b";
 
-const LANDMARK_COLOR = "#00FF00";
-const LANDMARK_RADIUS = 5;
-const CONNECTION_COLOR = "rgba(0, 255, 0, 0.6)";
-const CONNECTION_WIDTH = 3;
-
-function isVisible(visibility?: number): boolean {
-  return visibility === undefined || visibility >= VISIBILITY_THRESHOLD;
+function visible(v?: number): boolean {
+  return v === undefined || v >= 0.5;
 }
 
-function drawLandmark(
+function paint(
   ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number
+  pts: Pt[],
+  width: number,
+  color: string
 ): void {
+  if (pts.length < 2) return;
   ctx.beginPath();
-  ctx.arc(x, y, LANDMARK_RADIUS, 0, 2 * Math.PI);
-  ctx.fillStyle = LANDMARK_COLOR;
-  ctx.fill();
-}
-
-function drawConnection(
-  ctx: CanvasRenderingContext2D,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): void {
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.strokeStyle = CONNECTION_COLOR;
-  ctx.lineWidth = CONNECTION_WIDTH;
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
   ctx.stroke();
 }
 
-function renderPose(
+function dot(ctx: CanvasRenderingContext2D, p: Pt, r: number, color: string): void {
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawPenguin(
   ctx: CanvasRenderingContext2D,
   pose: PoseResult,
-  width: number,
-  height: number
+  W: number,
+  H: number
 ): void {
-  const { landmarks } = pose;
+  const l = pose.landmarks;
+  const at = (i: number): Pt | null =>
+    l[i] && visible(l[i].visibility)
+      ? { x: l[i].x * W, y: l[i].y * H }
+      : null;
+  const pair = (a: Pt | null, b: Pt | null): Pt | null =>
+    a && b ? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } : null;
 
-  for (const [i, j] of POSE_CONNECTIONS) {
-    const a = landmarks[i];
-    const b = landmarks[j];
-    if (!a || !b) continue;
-    if (!isVisible(a.visibility) || !isVisible(b.visibility)) continue;
+  const shL = at(11);
+  const shR = at(12);
+  const hipL = at(23);
+  const hipR = at(24);
+  if (!shL || !shR) return;
 
-    drawConnection(ctx, a.x * width, a.y * height, b.x * width, b.y * height);
+  const shoulderD = Math.hypot(shR.x - shL.x, shR.y - shL.y) || 40;
+  const s = shoulderD;
+  const shoulderMid = pair(shL, shR);
+  const hipMid = pair(hipL, hipR);
+
+  // Legs (naranja, tipo pies de pingüino)
+  for (const [knee, ankle] of [
+    [25, 27],
+    [26, 28],
+  ] as const) {
+    const k = at(knee);
+    const a = at(ankle);
+    if (k && a) {
+      paint(ctx, [a, k], s * 0.16, ORANGE);
+      dot(ctx, a, s * 0.13, ORANGE);
+    }
   }
 
-  for (const point of landmarks) {
-    if (!isVisible(point.visibility)) continue;
+  // Wings (brazos) → negros
+  for (const [el, wr] of [
+    [13, 15],
+    [14, 16],
+  ] as const) {
+    const e = at(el);
+    const w = at(wr);
+    if (e && w) {
+      paint(ctx, [e, w], s * 0.2, DARK);
+    }
+  }
 
-    drawLandmark(ctx, point.x * width, point.y * height);
+  // Body: contorno oscuro + panza blanca desde hombros hasta cadera
+  if (hipMid && shoulderMid) {
+    paint(ctx, [shoulderMid, hipMid], s * 1.0, DARK);
+    paint(ctx, [shoulderMid, hipMid], s * 0.78, WHITE);
+  }
+
+  // Cabeza con cara blanco + ojos + pico, centrada en la nariz
+  const nose = at(0);
+  if (nose) {
+    const headR = s * 0.42;
+    dot(ctx, nose, headR, DARK);
+    dot(ctx, { x: nose.x, y: nose.y + headR * 0.16 }, headR * 0.72, WHITE);
+
+    const eyeAPoint = at(2);
+    const eyeBPoint = at(5);
+    let eyeA: Pt = { x: nose.x - headR * 0.42, y: nose.y - headR * 0.12 };
+    let eyeB: Pt = { x: nose.x + headR * 0.42, y: nose.y - headR * 0.12 };
+    if (eyeAPoint) eyeA = eyeAPoint;
+    if (eyeBPoint) eyeB = eyeBPoint;
+    dot(ctx, eyeA, headR * 0.11, DARK);
+    dot(ctx, eyeB, headR * 0.11, DARK);
+
+    // Pico (triángulo hacia abajo)
+    const bw = headR * 0.34;
+    const bh = headR * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(nose.x - bw, nose.y + headR * 0.02);
+    ctx.lineTo(nose.x, nose.y + bh);
+    ctx.lineTo(nose.x + bw, nose.y + headR * 0.02);
+    ctx.closePath();
+    ctx.fillStyle = ORANGE;
+    ctx.fill();
   }
 }
 
@@ -112,7 +156,7 @@ export default function PoseCanvas({
 
     if (!pose?.detected || !pose.landmarks.length) return;
 
-    renderPose(ctx, pose, canvas.width, canvas.height);
+    drawPenguin(ctx, pose, canvas.width, canvas.height);
   }, [pose, videoRef]);
 
   return (
