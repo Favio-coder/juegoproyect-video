@@ -1,12 +1,8 @@
 import type { PoseChallenge, GameState } from "../types/game.types";
 import type { PoseResult } from "../types/pose.types";
+import type { AvatarMotion } from "../../avatar/types";
 
-export type AvatarMotion =
-  | "idle"
-  | "jumping"
-  | "squat"
-  | "marching"
-  | "celebrate";
+export type { AvatarMotion };
 
 export function interpretAvatarMotion(
   pose: PoseResult | null,
@@ -24,5 +20,7 @@ export function interpretAvatarMotion(
       return "squat";
     case "march":
       return "marching";
+    default:
+      return "idle";
   }
 }

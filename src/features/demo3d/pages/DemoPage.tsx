@@ -1,8 +1,12 @@
 import { useRef, useState, useCallback, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, ContactShadows } from "@react-three/drei";
 import type { WebGLRenderer } from "three";
-import Penguin3D from "../components/Penguin3D";
+import Avatar3D from "../../avatar/components/Avatar3D";
+import { AVATAR_IDS, AVATAR_MOTIONS } from "../../avatar/types";
+import type { AvatarMotion } from "../../avatar/types";
+import type { AvatarId } from "../../../core/utils/avatarAssets";
 
 function CaptureBridge({ onReady }: { onReady: (gl: WebGLRenderer) => void }) {
   const { gl } = useThree();
@@ -12,20 +16,31 @@ function CaptureBridge({ onReady }: { onReady: (gl: WebGLRenderer) => void }) {
   return null;
 }
 
+const MOTION_LABELS: Record<AvatarMotion, string> = {
+  idle: "Reposo",
+  jumping: "Polichinelas",
+  squat: "Sentadilla",
+  marching: "Marcha",
+  celebrate: "Celebración",
+};
+
 export default function DemoPage() {
   const rendererRef = useRef<WebGLRenderer | null>(null);
   const [spriteUrl, setSpriteUrl] = useState<string | null>(null);
   const [showSprite, setShowSprite] = useState(false);
+  const [avatar, setAvatar] = useState<AvatarId>("pingo");
+  const [motion, setMotion] = useState<AvatarMotion>("idle");
 
-  const btnStyle = (bg: string, outline = false): React.CSSProperties => ({
-    padding: "12px 22px",
-    borderRadius: 14,
+  const btnStyle = (selected: boolean, bg: string, outline = false): CSSProperties => ({
+    padding: "10px 18px",
+    borderRadius: 12,
     border: outline ? "1px solid #475569" : "none",
-    background: outline ? "transparent" : bg,
-    color: "white",
-    fontSize: 15,
+    background: selected ? bg : outline ? "transparent" : "#1e293b",
+    color: selected ? "white" : "#cbd5e1",
+    fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
+    opacity: selected ? 1 : 0.7,
   });
 
   const handleRendererReady = useCallback((gl: WebGLRenderer) => {
@@ -47,9 +62,9 @@ export default function DemoPage() {
     if (!spriteUrl) return;
     const a = document.createElement("a");
     a.href = spriteUrl;
-    a.download = "pingo-3d.png";
+    a.download = `${avatar}-3d.png`;
     a.click();
-  }, [spriteUrl]);
+  }, [spriteUrl, avatar]);
 
   return (
     <div
@@ -61,7 +76,7 @@ export default function DemoPage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 24,
+        gap: 20,
         boxSizing: "border-box",
       }}
     >
@@ -70,8 +85,8 @@ export default function DemoPage() {
           2.5D · Demo
         </h1>
         <p style={{ color: "#94a3b8", fontSize: 15, margin: "8px 0 0", lineHeight: 1.5 }}>
-          Un pingüino modelado en <b>3D</b> (React Three Fiber) →{" "}
-          <b>renderizado a PNG</b> → reutilizado como <b>sprite 2D</b> dentro del juego React.
+          Pingo y Rocko modelados en <b>3D</b> (React Three Fiber) → <b>renderizados
+          a PNG</b> → reutilizados como <b>sprite 2D</b> dentro del juego React.
         </p>
       </header>
 
@@ -97,9 +112,7 @@ export default function DemoPage() {
           <directionalLight position={[3, 5, 4]} intensity={1.2} />
           <directionalLight position={[-3, 2, -2]} intensity={0.4} />
           <CaptureBridge onReady={handleRendererReady} />
-          <group position={[0, 0, 0]}>
-            <Penguin3D />
-          </group>
+          <Avatar3D avatar={avatar} motion={motion} />
           <ContactShadows
             opacity={0.4}
             scale={5}
@@ -116,17 +129,74 @@ export default function DemoPage() {
         </Canvas>
       </div>
 
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+        {AVATAR_IDS.map((id) => (
+          <button
+            key={id}
+            onClick={() => setAvatar(id)}
+            style={btnStyle(avatar === id, id === "rocko" ? "#ea580c" : "#0284c7")}
+          >
+            {id === "rocko" ? "🦝 Rocko" : "🐧 Pingo"}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", maxWidth: 520 }}>
+        {AVATAR_MOTIONS.map((m) => (
+          <button
+            key={m}
+            onClick={() => setMotion(m)}
+            style={btnStyle(motion === m, "#16a34a")}
+          >
+            {MOTION_LABELS[m]}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         <button
           onClick={handleExport}
-          style={btnStyle("#f59e0b")}
+          style={{
+            padding: "12px 22px",
+            borderRadius: 14,
+            border: "none",
+            background: "#f59e0b",
+            color: "white",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
         >
           🖼 Exportar a PNG
         </button>
-        <button onClick={handleDownload} style={btnStyle("#22c55e")}>
+        <button
+          onClick={handleDownload}
+          style={{
+            padding: "12px 22px",
+            borderRadius: 14,
+            border: "none",
+            background: "#22c55e",
+            color: "white",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
           💾 Descargar
         </button>
-        <button onClick={handleReset} style={btnStyle("#64748b", true)}>
+        <button
+          onClick={handleReset}
+          style={{
+            padding: "12px 22px",
+            borderRadius: 14,
+            border: "1px solid #475569",
+            background: "transparent",
+            color: "white",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
           Mostrar sprite
         </button>
       </div>
@@ -158,7 +228,7 @@ export default function DemoPage() {
               <img
                 key={i}
                 src={spriteUrl}
-                alt={`Pingo sprite ${i}`}
+                alt={`${avatar} sprite ${i}`}
                 style={{
                   width: 64,
                   height: 64,

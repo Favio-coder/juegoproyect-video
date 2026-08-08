@@ -4,6 +4,7 @@ import QRCodeCard from "../../qr/components/QRCodeCard";
 import ConnectionStatus from "../../qr/components/ConnectionStatus";
 import { useAppStore } from "../../../core/store/appStore";
 import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
+import PrinterModal from "../../qr/components/PrinterModal";
 
 interface GameOverScreenProps {
   score: number;
@@ -24,6 +25,7 @@ export default function GameOverScreen({
   } = usePhoneConnection();
 
   const [showQR, setShowQR] = useState(false);
+  const [showPrinter, setShowPrinter] = useState(false);
   const playerName = useAppStore((s) => s.playerName);
   const { src: happySvg, name } = useAvatarAsset("happy");
 
@@ -167,6 +169,25 @@ export default function GameOverScreen({
         >
           📱 Conectar teléfono
         </button>
+
+        <button
+          onClick={() => setShowPrinter(true)}
+          style={{
+            padding: "18px 40px",
+            borderRadius: 16,
+            border: "1px solid #334155",
+            background: "transparent",
+            color: "white",
+            fontSize: 20,
+            fontWeight: 700,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          🖨 Imprimir sticker
+        </button>
       </div>
 
       <span style={{ color: "#64748b", fontSize: 14, fontWeight: 500 }}>
@@ -241,6 +262,15 @@ export default function GameOverScreen({
           </div>
         </div>
       )}
+
+      {showPrinter && (
+        <PrinterModal
+          playerName={greeting}
+          exerciseCount={totalRounds}
+          onClose={() => setShowPrinter(false)}
+        />
+      )}
+
       <style>{`
         .animate-bounce-in {
           animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);

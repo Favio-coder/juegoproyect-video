@@ -1,9 +1,9 @@
-import { useEffect, useCallback, useState, Suspense } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import ForestBackground from "../components/ForestBackground";
 import CameraView from "../components/CameraView";
 import PenguinCoach from "../components/PenguinCoach";
-import GamePenguin from "../components/GamePenguin";
+import GameAvatar from "../../avatar/components/GameAvatar";
 import TopHUD from "../components/TopHUD";
 import CountdownOverlay from "../components/CountdownOverlay";
 import SuccessAnimation from "../components/SuccessAnimation";
@@ -261,11 +261,9 @@ export default function GameplayPage() {
                 <ambientLight intensity={0.8} />
                 <directionalLight position={[3, 5, 3]} intensity={1.4} />
                 <directionalLight position={[-3, 2, -2]} intensity={0.5} />
-                <Suspense fallback={null}>
-                  <group position={[0, -0.7, 0]} scale={1.15}>
-                    <GamePenguin motion={avatarMotion} />
-                  </group>
-                </Suspense>
+                <group position={[0, -1, 0]} scale={0.85}>
+                  <GameAvatar motion={avatarMotion} />
+                </group>
               </Canvas>
             </div>
           )}
