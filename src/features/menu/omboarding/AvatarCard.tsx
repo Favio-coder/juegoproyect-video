@@ -44,7 +44,7 @@ export default function AvatarCard({
         key={selected ? "happy" : "idle"}
         src={selected ? selectedImage : idleImage}
         alt={name}
-        className="h-44 w-auto"
+        className="h-48 w-auto"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{
           opacity: 1,
@@ -55,7 +55,7 @@ export default function AvatarCard({
         }}
       />
 
-      <span className="text-2xl font-bold">
+      <span className="text-3xl font-bold">
         {name}
       </span>
     </motion.button>

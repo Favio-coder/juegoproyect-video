@@ -103,7 +103,7 @@ export default function GameOverScreen({
         }}
       />
 
-      <p style={{ color: "#94a3b8", fontSize: 18, textAlign: "center", maxWidth: 360, lineHeight: 1.5 }}>
+      <p style={{ color: "#cbd5e1", fontSize: 20, textAlign: "center", maxWidth: 420, lineHeight: 1.5 }}>
         Eres un verdadero guardián del movimiento. Completaste {totalRounds} ejercicios
         y obtuviste
       </p>
@@ -123,7 +123,7 @@ export default function GameOverScreen({
         <span style={{ fontSize: 42, fontWeight: 900, color: "#fbbf24" }}>
           {score}
         </span>
-        <span style={{ fontSize: 18, color: "#94a3b8" }}>puntos</span>
+        <span style={{ fontSize: 18, color: "#cbd5e1" }}>puntos</span>
       </div>
 
       <div
@@ -190,7 +190,7 @@ export default function GameOverScreen({
         </button>
       </div>
 
-      <span style={{ color: "#64748b", fontSize: 14, fontWeight: 500 }}>
+      <span style={{ color: "#94a3b8", fontSize: 16, fontWeight: 600 }}>
         Presiona espacio o enter para jugar de nuevo
       </span>
 

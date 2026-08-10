@@ -34,17 +34,18 @@ export default function Logo() {
         {MENU.subtitle}
       </h2>
 
-      {/* <p
+      <p
         className="
           mt-4
-          text-sm
-          md:text-lg
-          text-white/90
-          font-medium
+          text-xl
+          md:text-2xl
+          font-semibold
+          text-white/95
+          drop-shadow-[0_2px_4px_rgba(0,0,0,.6)]
         "
       >
         {MENU.slogan}
-      </p> */}
+      </p>
     </header>
   );
 }

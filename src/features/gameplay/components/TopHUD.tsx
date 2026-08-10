@@ -44,18 +44,18 @@ export default function TopHUD({
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 22 }}>⭐</span>
+        <span style={{ fontSize: 26 }}>⭐</span>
         <span
           style={{
             color: "#fbbf24",
-            fontSize: 22,
+            fontSize: 26,
             fontWeight: 800,
             fontVariantNumeric: "tabular-nums",
           }}
         >
           {score}
         </span>
-        <span style={{ color: "#94a3b8", fontSize: 15, fontWeight: 600 }}>pts</span>
+        <span style={{ color: "#cbd5e1", fontSize: 18, fontWeight: 700 }}>puntos</span>
       </div>
 
       <div
@@ -88,9 +88,9 @@ export default function TopHUD({
         </div>
         <span
           style={{
-            color: "#94a3b8",
-            fontSize: 14,
-            fontWeight: 600,
+            color: "#cbd5e1",
+            fontSize: 18,
+            fontWeight: 700,
             whiteSpace: "nowrap",
             fontVariantNumeric: "tabular-nums",
           }}
@@ -118,11 +118,11 @@ export default function TopHUD({
             border: "1px solid rgba(251,191,36,0.3)",
           }}
         >
-          <span style={{ fontSize: 17 }}>💪</span>
+          <span style={{ fontSize: 20 }}>💪</span>
           <span
             style={{
               color: "#fbbf24",
-              fontSize: 17,
+              fontSize: 20,
               fontWeight: 800,
               fontVariantNumeric: "tabular-nums",
             }}
@@ -138,14 +138,14 @@ export default function TopHUD({
             gap: 6,
           }}
         >
-          <span style={{ fontSize: 20 }}>⏱</span>
+          <span style={{ fontSize: 24 }}>⏱</span>
           <span
             style={{
               color: lowTime ? "#ef4444" : "white",
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: 700,
               fontVariantNumeric: "tabular-nums",
-              minWidth: 52,
+              minWidth: 56,
               textAlign: "right",
             }}
           >

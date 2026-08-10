@@ -56,7 +56,7 @@ export default function SuccessAnimation({
           <p
             style={{
               color: "white",
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: 800,
               margin: 0,
               textAlign: "center",
@@ -79,11 +79,11 @@ export default function SuccessAnimation({
               border: "1px solid rgba(251,191,36,0.4)",
             }}
           >
-            <span style={{ fontSize: 16 }}>+</span>
+            <span style={{ fontSize: 20 }}>+</span>
             <span
               style={{
                 color: "#fbbf24",
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: 800,
               }}
             >

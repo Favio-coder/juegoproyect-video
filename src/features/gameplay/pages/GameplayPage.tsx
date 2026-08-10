@@ -118,7 +118,7 @@ export default function GameplayPage() {
           >
             ¡Comenzar!
           </button>
-          <span style={{ color: "#94a3b8", fontSize: 16, fontWeight: 500 }}>
+          <span style={{ color: "#cbd5e1", fontSize: 18, fontWeight: 600 }}>
             Presiona espacio o enter
           </span>
         </div>
@@ -232,7 +232,7 @@ export default function GameplayPage() {
               >
                 Continuar
               </button>
-              <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>
+              <span style={{ color: "#cbd5e1", fontSize: 18, fontWeight: 600 }}>
                 Presiona espacio o enter
               </span>
             </div>
@@ -331,10 +331,10 @@ export default function GameplayPage() {
                 <span
                   style={{
                     flex: 1,
-                    fontSize: 15,
-                    fontWeight: 500,
+                    fontSize: 17,
+                    fontWeight: 600,
                     color: "#e2e8f0",
-                    lineHeight: 1.4,
+                    lineHeight: 1.45,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",

@@ -58,11 +58,9 @@ export default function AvatarStep({ onContinue }: AvatarStepProps) {
         shadow-2xl
       "
     >
-      <h2 className="text-center text-4xl font-bold">
-        Escoge tu guardián
-      </h2>
+      <h2 className="text-center text-5xl font-bold">Escoge tu guardián ✨</h2>
 
-      <p className="mt-2 text-center text-gray-600">
+      <p className="mt-3 text-center text-lg font-semibold text-gray-700">
         Cada guardián te acompañará durante toda la aventura.
       </p>
 
@@ -86,12 +84,17 @@ export default function AvatarStep({ onContinue }: AvatarStepProps) {
           className="
             rounded-full
             bg-[#FA981B]
-            px-10
-            py-4
-            text-2xl
+            px-12
+            py-5
+            text-3xl
             font-bold
             text-white
+            shadow-lg
+            transition-transform
+            hover:scale-[1.03]
+            active:scale-95
             disabled:opacity-50
+            disabled:hover:scale-100
           "
         >
           Continuar

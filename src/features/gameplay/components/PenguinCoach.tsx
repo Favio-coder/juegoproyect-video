@@ -23,7 +23,7 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
         }
         return next;
       });
-    }, 30);
+    }, 18);
 
     return () => clearInterval(interval);
   }, [message]);
@@ -34,17 +34,17 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
   const isLarge = size === "lg";
 
   if (mood === "advising" || isLarge) {
-    const avatarSize = isLarge ? 132 : 64;
-    const fontSize = isLarge ? 26 : 18;
-    const padding = isLarge ? "16% 9%" : "14% 8%";
-    const minHeight = isLarge ? 150 : 80;
+    const avatarSize = isLarge ? 150 : 72;
+    const fontSize = isLarge ? 32 : 22;
+    const padding = isLarge ? "16% 10%" : "13% 9%";
+    const minHeight = isLarge ? 190 : 110;
 
     return (
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: isLarge ? 24 : 14,
+          gap: isLarge ? 26 : 16,
           maxWidth: "100%",
         }}
       >
@@ -76,8 +76,8 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
             style={{
               position: "absolute",
               inset: padding,
-              background: "rgba(0,0,0,0.35)",
-              borderRadius: 8,
+              background: "rgba(31, 22, 12, 0.22)",
+              borderRadius: 10,
               pointerEvents: "none",
             }}
           />
@@ -87,11 +87,11 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
               color: "white",
               fontSize,
               fontWeight: 700,
-              lineHeight: 1.4,
-              minHeight: "1.4em",
+              lineHeight: 1.5,
+              minHeight: "1.5em",
               position: "relative",
               zIndex: 1,
-              textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+              textShadow: "0 2px 6px rgba(0,0,0,0.7)",
             }}
           >
             {displayedMessage}
@@ -120,10 +120,10 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 14,
-        padding: "10px 18px",
+        gap: 16,
+        padding: "12px 22px",
         background: "rgba(0,0,0,0.6)",
-        borderRadius: 18,
+        borderRadius: 22,
         backdropFilter: "blur(8px)",
         maxWidth: "100%",
       }}
@@ -132,8 +132,8 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
         src={src}
         alt={name}
         style={{
-          width: 64,
-          height: 64,
+          width: 72,
+          height: 72,
           objectFit: "contain",
           flexShrink: 0,
           transition: "transform 0.3s",
@@ -143,9 +143,9 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
 
       <div
         style={{
-          background: "rgba(255,255,255,0.1)",
-          borderRadius: 14,
-          padding: "10px 18px",
+          background: "rgba(255,255,255,0.12)",
+          borderRadius: 16,
+          padding: "12px 22px",
           position: "relative",
           flex: 1,
         }}
@@ -153,14 +153,14 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
         <div
           style={{
             position: "absolute",
-            left: -7,
+            left: -8,
             top: "50%",
             transform: "translateY(-50%)",
             width: 0,
             height: 0,
-            borderTop: "7px solid transparent",
-            borderBottom: "7px solid transparent",
-            borderRight: "7px solid rgba(255,255,255,0.1)",
+            borderTop: "8px solid transparent",
+            borderBottom: "8px solid transparent",
+            borderRight: "8px solid rgba(255,255,255,0.12)",
           }}
         />
 
@@ -168,10 +168,11 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
           style={{
             margin: 0,
             color: "white",
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: 600,
-            lineHeight: 1.4,
-            minHeight: "1.4em",
+            lineHeight: 1.5,
+            minHeight: "1.5em",
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
           }}
         >
           {displayedMessage}

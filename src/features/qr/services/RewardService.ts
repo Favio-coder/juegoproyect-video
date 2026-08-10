@@ -65,6 +65,8 @@ function drawCentered(
   return y;
 }
 
+
+// Protocolo base para la conexión Bluetooth
 export class RewardService {
   static buildQrText(playerName: string): string {
     const base =
