@@ -1,175 +1,191 @@
 import { useEffect, useRef } from "react";
-import type { PoseResult } from "../types/pose.types";
+import {
+  MOTION_ASSETS,
+  PINGO_SQUAT_FRAMES,
+  type MotionPose,
+} from "../../avatar/motionAvatarAssets";
+import type { Landmark, PoseResult } from "../types/pose.types";
 
 interface PoseCanvasProps {
   pose: PoseResult | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-type Pt = { x: number; y: number };
+type Point = { x: number; y: number };
+type TrackingLevel = "face" | "upper" | "full";
+type SmoothBox = { x: number; y: number; width: number; height: number };
 
-const DARK = "#1f2937";
-const WHITE = "#f8fafc";
-const ORANGE = "#f59e0b";
+const VISIBILITY = 0.55;
+const imageCache = new Map<string, HTMLImageElement>();
 
-function visible(v?: number): boolean {
-  return v === undefined || v >= 0.5;
+function isVisible(point?: Landmark): point is Landmark {
+  return Boolean(point && (point.visibility ?? 1) >= VISIBILITY);
 }
 
-function paint(
-  ctx: CanvasRenderingContext2D,
-  pts: Pt[],
-  width: number,
-  color: string
-): void {
-  if (pts.length < 2) return;
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.stroke();
+function getImage(src: string): HTMLImageElement | null {
+  const cached = imageCache.get(src);
+  if (cached) return cached.complete && cached.naturalWidth ? cached : null;
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+  imageCache.set(src, image);
+  return null;
 }
 
-function dot(ctx: CanvasRenderingContext2D, p: Pt, r: number, color: string): void {
-  ctx.beginPath();
-  ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
+function midpoint(a: Point, b: Point): Point {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 }
 
-function drawPenguin(
-  ctx: CanvasRenderingContext2D,
-  pose: PoseResult,
-  W: number,
-  H: number
-): void {
-  const l = pose.landmarks;
-  const at = (i: number): Pt | null =>
-    l[i] && visible(l[i].visibility)
-      ? { x: l[i].x * W, y: l[i].y * H }
-      : null;
-  const pair = (a: Pt | null, b: Pt | null): Pt | null =>
-    a && b ? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } : null;
-
-  const shL = at(11);
-  const shR = at(12);
-  const hipL = at(23);
-  const hipR = at(24);
-  if (!shL || !shR) return;
-
-  const shoulderD = Math.hypot(shR.x - shL.x, shR.y - shL.y) || 40;
-  const s = shoulderD;
-  const shoulderMid = pair(shL, shR);
-  const hipMid = pair(hipL, hipR);
-
-  // Legs (naranja, tipo pies de pingüino)
-  for (const [knee, ankle] of [
-    [25, 27],
-    [26, 28],
-  ] as const) {
-    const k = at(knee);
-    const a = at(ankle);
-    if (k && a) {
-      paint(ctx, [a, k], s * 0.16, ORANGE);
-      dot(ctx, a, s * 0.13, ORANGE);
-    }
+function choosePose(landmarks: Landmark[]): MotionPose {
+  const [leftShoulder, rightShoulder] = [landmarks[11], landmarks[12]];
+  const [leftWrist, rightWrist] = [landmarks[15], landmarks[16]];
+  if ([leftShoulder, rightShoulder, leftWrist, rightWrist].every(isVisible)) {
+    const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+    if (leftWrist.y < shoulderY && rightWrist.y < shoulderY) return "star";
   }
 
-  // Wings (brazos) → negros
-  for (const [el, wr] of [
-    [13, 15],
-    [14, 16],
-  ] as const) {
-    const e = at(el);
-    const w = at(wr);
-    if (e && w) {
-      paint(ctx, [e, w], s * 0.2, DARK);
-    }
+  const [leftHip, rightHip] = [landmarks[23], landmarks[24]];
+  const [leftKnee, rightKnee] = [landmarks[25], landmarks[26]];
+  const [leftAnkle, rightAnkle] = [landmarks[27], landmarks[28]];
+  if ([leftShoulder, rightShoulder, leftHip, rightHip, leftKnee, rightKnee].every(isVisible)) {
+    const hipY = (leftHip.y + rightHip.y) / 2;
+    const kneeY = (leftKnee.y + rightKnee.y) / 2;
+    const torso = Math.max(0.08, hipY - (leftShoulder.y + rightShoulder.y) / 2);
+    if ((kneeY - hipY) / torso < 0.85) return "squat";
   }
-
-  // Body: contorno oscuro + panza blanca desde hombros hasta cadera
-  if (hipMid && shoulderMid) {
-    paint(ctx, [shoulderMid, hipMid], s * 1.0, DARK);
-    paint(ctx, [shoulderMid, hipMid], s * 0.78, WHITE);
+  if ([leftKnee, rightKnee, leftAnkle, rightAnkle].every(isVisible)) {
+    const ankleGap = Math.abs(leftAnkle.y - rightAnkle.y);
+    const kneeGap = Math.abs(leftKnee.y - rightKnee.y);
+    if (ankleGap > 0.08 || kneeGap > 0.08) return "march";
   }
-
-  // Cabeza con cara blanco + ojos + pico, centrada en la nariz
-  const nose = at(0);
-  if (nose) {
-    const headR = s * 0.42;
-    dot(ctx, nose, headR, DARK);
-    dot(ctx, { x: nose.x, y: nose.y + headR * 0.16 }, headR * 0.72, WHITE);
-
-    const eyeAPoint = at(2);
-    const eyeBPoint = at(5);
-    let eyeA: Pt = { x: nose.x - headR * 0.42, y: nose.y - headR * 0.12 };
-    let eyeB: Pt = { x: nose.x + headR * 0.42, y: nose.y - headR * 0.12 };
-    if (eyeAPoint) eyeA = eyeAPoint;
-    if (eyeBPoint) eyeB = eyeBPoint;
-    dot(ctx, eyeA, headR * 0.11, DARK);
-    dot(ctx, eyeB, headR * 0.11, DARK);
-
-    // Pico (triángulo hacia abajo)
-    const bw = headR * 0.34;
-    const bh = headR * 0.2;
-    ctx.beginPath();
-    ctx.moveTo(nose.x - bw, nose.y + headR * 0.02);
-    ctx.lineTo(nose.x, nose.y + bh);
-    ctx.lineTo(nose.x + bw, nose.y + headR * 0.02);
-    ctx.closePath();
-    ctx.fillStyle = ORANGE;
-    ctx.fill();
-  }
+  return "idle";
 }
 
-export default function PoseCanvas({
-  pose,
-  videoRef,
-}: PoseCanvasProps) {
+function trackingLevel(landmarks: Landmark[]): TrackingLevel | null {
+  const faceCount = landmarks.slice(0, 11).filter(isVisible).length;
+  if (faceCount < 2) return null;
+  const shoulders = isVisible(landmarks[11]) && isVisible(landmarks[12]);
+  if (!shoulders) return "face";
+  const hips = isVisible(landmarks[23]) && isVisible(landmarks[24]);
+  const ankles = isVisible(landmarks[27]) && isVisible(landmarks[28]);
+  return hips && ankles ? "full" : "upper";
+}
+
+function squatFrame(landmarks: Landmark[]): number {
+  const shoulder = (landmarks[11].y + landmarks[12].y) / 2;
+  const hip = (landmarks[23].y + landmarks[24].y) / 2;
+  const knee = (landmarks[25].y + landmarks[26].y) / 2;
+  const ratio = (knee - hip) / Math.max(0.08, hip - shoulder);
+  const depth = Math.max(0, Math.min(1, (1.05 - ratio) / 0.55));
+  return Math.round(depth * (PINGO_SQUAT_FRAMES.length - 1) / 2);
+}
+
+function lerpBox(previous: SmoothBox | null, next: SmoothBox): SmoothBox {
+  if (!previous) return next;
+  const amount = 0.28;
+  return {
+    x: previous.x + (next.x - previous.x) * amount,
+    y: previous.y + (next.y - previous.y) * amount,
+    width: previous.width + (next.width - previous.width) * amount,
+    height: previous.height + (next.height - previous.height) * amount,
+  };
+}
+
+export default function PoseCanvas({ pose, videoRef }: PoseCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dimensionsSet = useRef(false);
+  const smoothBoxRef = useRef<SmoothBox | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-
     if (!canvas || !video) return;
 
-    if (
-      video.videoWidth > 0 &&
-      video.videoHeight > 0 &&
-      !dimensionsSet.current
-    ) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      dimensionsSet.current = true;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const canvasPixelWidth = Math.round(width * pixelRatio);
+    const canvasPixelHeight = Math.round(height * pixelRatio);
+    if (canvas.width !== canvasPixelWidth || canvas.height !== canvasPixelHeight) {
+      canvas.width = canvasPixelWidth;
+      canvas.height = canvasPixelHeight;
     }
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    if (!pose?.detected || !pose.landmarks.length || !video.videoWidth || !video.videoHeight) {
+      smoothBoxRef.current = null;
+      return;
+    }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const level = trackingLevel(pose.landmarks);
+    if (!level) return;
+    const coverScale = Math.max(width / video.videoWidth, height / video.videoHeight);
+    const offsetX = (width - video.videoWidth * coverScale) / 2;
+    const offsetY = (height - video.videoHeight * coverScale) / 2;
+    const project = (point: Landmark): Point => ({
+      x: offsetX + point.x * video.videoWidth * coverScale,
+      y: offsetY + point.y * video.videoHeight * coverScale,
+    });
 
-    if (!pose?.detected || !pose.landmarks.length) return;
+    const facePoints = pose.landmarks.slice(0, 11).filter(isVisible).map(project);
+    const faceCenter = facePoints.reduce(
+      (sum, point) => ({ x: sum.x + point.x / facePoints.length, y: sum.y + point.y / facePoints.length }),
+      { x: 0, y: 0 },
+    );
+    const leftShoulder = pose.landmarks[11];
+    const rightShoulder = pose.landmarks[12];
+    const shoulderWidth = isVisible(leftShoulder) && isVisible(rightShoulder)
+      ? Math.hypot(project(leftShoulder).x - project(rightShoulder).x, project(leftShoulder).y - project(rightShoulder).y)
+      : Math.max(70, Math.max(...facePoints.map((point) => point.x)) - Math.min(...facePoints.map((point) => point.x))) * 2.6;
 
-    drawPenguin(ctx, pose, canvas.width, canvas.height);
+    const poseName = choosePose(pose.landmarks);
+    let source = MOTION_ASSETS.pingo[poseName];
+    if (poseName === "squat") source = PINGO_SQUAT_FRAMES[squatFrame(pose.landmarks)];
+    const image = getImage(source);
+    if (!image) return;
+
+    const visibleBody = pose.landmarks.filter(isVisible).map(project);
+    const minY = Math.min(...visibleBody.map((point) => point.y));
+    const maxY = Math.max(...visibleBody.map((point) => point.y));
+    const centerX = level === "face" || !isVisible(leftShoulder) || !isVisible(rightShoulder)
+      ? faceCenter.x
+      : midpoint(project(leftShoulder), project(rightShoulder)).x;
+    const targetHeight = level === "face"
+      ? shoulderWidth * 1.45
+      : level === "upper"
+        ? Math.max(shoulderWidth * 2.35, (maxY - minY) * 1.15)
+        : Math.max(shoulderWidth * 3.1, (maxY - minY) * 1.08);
+    const targetWidth = targetHeight * (image.naturalWidth / image.naturalHeight);
+    const targetBox = {
+      x: centerX - targetWidth / 2,
+      y: level === "face" ? faceCenter.y - targetHeight * 0.43 : minY - targetHeight * 0.08,
+      width: targetWidth,
+      height: targetHeight,
+    };
+    const box = lerpBox(smoothBoxRef.current, targetBox);
+    smoothBoxRef.current = box;
+
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.imageSmoothingEnabled = true;
+    if (level === "face") {
+      const cropHeight = image.naturalHeight * 0.53;
+      ctx.drawImage(image, 0, 0, image.naturalWidth, cropHeight, box.x, box.y, box.width, box.height * 0.53);
+    } else if (level === "upper") {
+      const cropHeight = image.naturalHeight * 0.72;
+      ctx.drawImage(image, 0, 0, image.naturalWidth, cropHeight, box.x, box.y, box.width, box.height * 0.72);
+    } else {
+      ctx.drawImage(image, box.x, box.y, box.width, box.height);
+    }
+    ctx.restore();
   }, [pose, videoRef]);
 
   return (
     <canvas
       ref={canvasRef}
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-      }}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
     />
   );
 }

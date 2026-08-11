@@ -7,6 +7,7 @@ const GameplayPage = lazy(() => import("./features/gameplay/pages/GameplayPage")
 const PhoneCameraPage = lazy(() => import("./features/qr/pages/PhoneCameraPage"))
 const PruebaPage = lazy(() => import("./features/gameplay/pages/PruebaPage"))
 const DemoPage = lazy(() => import("./features/demo3d/pages/DemoPage"))
+const PuppetLabPage = lazy(() => import("./features/avatar/pages/PuppetLabPage"))
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
   {
     path: "/demo3d",
     element: <DemoPage />,
+  },
+  {
+    path: "/avatar-puppet",
+    element: <PuppetLabPage />,
   },
   {
     path: "/juego",
