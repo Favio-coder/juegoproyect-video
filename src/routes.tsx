@@ -8,6 +8,7 @@ const PhoneCameraPage = lazy(() => import("./features/qr/pages/PhoneCameraPage")
 const PruebaPage = lazy(() => import("./features/gameplay/pages/PruebaPage"))
 const DemoPage = lazy(() => import("./features/demo3d/pages/DemoPage"))
 const PuppetLabPage = lazy(() => import("./features/avatar/pages/PuppetLabPage"))
+const PrinterPage = lazy(() => import("./features/qr/pages/PrinterPage"))
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
   {
     path: "/prueba",
     element: <PruebaPage />,
+  },
+  {
+    path: "/impresora",
+    element: <PrinterPage />,
   },
   {
     path: "/connect/:sessionId",

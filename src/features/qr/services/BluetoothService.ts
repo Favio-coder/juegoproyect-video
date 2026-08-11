@@ -20,6 +20,10 @@ export class BluetoothService {
     return this.device !== null && this.device.gatt?.connected === true;
   }
 
+  getDeviceName(): string | undefined {
+    return this.device?.name;
+  }
+
   async connect(): Promise<void> {
     if (!BluetoothService.isSupported()) {
       throw new Error("Web Bluetooth no está disponible. Usa Chrome o Edge.");
