@@ -1,9 +1,7 @@
-import { useEffect, useCallback, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useEffect, useCallback } from "react";
 import ForestBackground from "../components/ForestBackground";
 import CameraView from "../components/CameraView";
 import PenguinCoach from "../components/PenguinCoach";
-import GameAvatar from "../../avatar/components/GameAvatar";
 import TopHUD from "../components/TopHUD";
 import CountdownOverlay from "../components/CountdownOverlay";
 import SuccessAnimation from "../components/SuccessAnimation";
@@ -14,7 +12,6 @@ import LeafProgress from "../components/LeafProgress";
 import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import { useGame } from "../hooks/useGame";
 import { useCountdown } from "../hooks/useCountdown";
-import { interpretAvatarMotion } from "../hooks/useAvatarMotion";
 import type { PoseResult } from "../types/pose.types";
 import { GAME_CONFIG, getIntroSpeech } from "../constants/game.constants";
 import { useAppStore } from "../../../core/store/appStore";
@@ -23,23 +20,15 @@ export default function GameplayPage() {
   const game = useGame();
   const playerName = useAppStore((s) => s.playerName);
   const { remoteStream } = usePhoneConnection();
-  const [lastPose, setLastPose] = useState<PoseResult | null>(null);
   const countdown = useCountdown(GAME_CONFIG.countdownSeconds, () => {
     game.onCountdownComplete();
   });
 
   const handlePoseResult = useCallback(
     (pose: PoseResult) => {
-      setLastPose(pose);
       game.onPoseResult(pose);
     },
     [game]
-  );
-
-  const avatarMotion = interpretAvatarMotion(
-    lastPose,
-    game.currentChallenge,
-    game.state
   );
 
   useEffect(() => {
@@ -136,7 +125,7 @@ export default function GameplayPage() {
       ? "¡Se acabó el tiempo! Sigue practicando 💪"
       : "";
 
-  const pingoMood = game.state === "success" ? "happy" : game.state === "showingPose" ? "advising" : "idle";
+  const pingoMood = game.state === "success" ? "happy" : "idle";
   const challenge = game.currentChallenge;
 
   return (
@@ -238,45 +227,15 @@ export default function GameplayPage() {
             </div>
           )}
 
-          {(game.state === "challengeIntro" ||
-            game.state === "showingPose" ||
-            game.state === "success") && (
+          {game.state === "success" && (
             <div
               style={{
                 position: "absolute",
-                right: 14,
-                top: "18%",
-                width: 160,
-                height: 230,
-                zIndex: 55,
-                pointerEvents: "none",
-              }}
-            >
-              <Canvas
-                dpr={[1, 2]}
-                gl={{ alpha: true, antialias: true }}
-                camera={{ position: [0, 0.5, 2.4], fov: 34 }}
-                style={{ background: "transparent" }}
-              >
-                <ambientLight intensity={0.8} />
-                <directionalLight position={[3, 5, 3]} intensity={1.4} />
-                <directionalLight position={[-3, 2, -2]} intensity={0.5} />
-                <group position={[0, -1, 0]} scale={0.85}>
-                  <GameAvatar motion={avatarMotion} />
-                </group>
-              </Canvas>
-            </div>
-          )}
-
-          {(game.state === "showingPose" || game.state === "success") && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 100,
-                left: "50%",
-                transform: "translateX(-50%)",
-                maxWidth: "92%",
+                top: 18,
+                left: 18,
+                maxWidth: "min(520px, calc(100% - 36px))",
                 zIndex: 50,
+                pointerEvents: "none",
               }}
             >
               <PenguinCoach

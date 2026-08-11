@@ -1,0 +1,96 @@
+.puppet-lab {
+  min-height: 100dvh;
+  background: #f5f4ee;
+  color: #183315;
+}
+
+.puppet-lab__header {
+  height: 92px;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: 24px;
+  background: #173813;
+  color: #fffdf2;
+}
+
+.puppet-lab__header h1 { margin: 0; font-size: clamp(28px, 3vw, 44px); line-height: 1; }
+.puppet-lab__back { width: 54px; height: 54px; border: 2px solid #456439; border-radius: 14px; background: transparent; color: inherit; font: inherit; font-size: 38px; cursor: pointer; }
+.puppet-lab__status { display: flex; align-items: center; gap: 9px; color: #dce8d3; font-size: 17px; font-weight: 600; }
+.puppet-lab__status i { width: 13px; height: 13px; border-radius: 50%; background: #82c835; box-shadow: 0 0 0 5px rgba(130, 200, 53, .12); }
+
+.puppet-lab__modes { width: min(720px, calc(100% - 32px)); margin: 24px auto 0; padding: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border: 1px solid #d7d5c9; border-radius: 16px; background: #fff; }
+.puppet-lab__modes button { padding: 13px 18px; border: 0; border-radius: 11px; background: transparent; color: #53604d; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+.puppet-lab__modes button.is-selected { background: #294e28; color: #fff; }
+.puppet-lab__rig-workspace { width: min(1500px, calc(100% - 48px)); margin: 24px auto 32px; display: grid; grid-template-columns: minmax(640px, 1fr) 330px; gap: 24px; }
+.rig-camera { min-width: 0; overflow: hidden; border: 3px solid #294e28; border-radius: 24px; background: #101510; box-shadow: 0 18px 48px rgba(26, 52, 24, .12); }
+.rig-camera__viewport { position: relative; height: min(72vh, 760px); min-height: 540px; overflow: hidden; background: #101510; }
+.rig-camera__viewport video, .rig-camera__canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rig-camera__canvas { pointer-events: none; }
+.rig-camera__message { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 24px; font-weight: 700; }
+.rig-camera__message--error { color: #ff9b9b; }
+.rig-camera__tracking { position: absolute; top: 18px; left: 18px; padding: 9px 14px; border-radius: 999px; background: rgba(16, 21, 16, .75); color: #e9efe5; font-weight: 700; backdrop-filter: blur(8px); }
+.rig-camera__tracking::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: #e3ad38; }
+.rig-camera__tracking.is-detected::before { background: #70d94c; }
+.rig-camera__toolbar { min-height: 76px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; background: #fff; }
+.rig-camera__toolbar div { display: grid; gap: 2px; }
+.rig-camera__toolbar span { color: #6a7466; font-size: 14px; }
+.rig-camera__toolbar label { display: flex; align-items: center; gap: 9px; color: #294522; font-weight: 650; }
+.rig-camera__toolbar input { width: 18px; height: 18px; accent-color: #4f7b28; }
+.rig-camera__permission { min-height: 650px; padding: 48px; display: grid; align-content: center; justify-items: center; text-align: center; border: 3px solid #294e28; border-radius: 24px; background: radial-gradient(circle at 50% 35%, #fff 0, #f1f3e9 65%, #e5eadb 100%); }
+.rig-camera__permission > span { display: grid; place-items: center; width: 82px; height: 82px; border-radius: 26px; background: #294e28; color: #fff; font-size: 40px; }
+.rig-camera__permission h2 { margin: 24px 0 10px; font-size: 34px; }
+.rig-camera__permission p { max-width: 600px; margin: 0; color: #687263; font-size: 18px; line-height: 1.55; }
+.rig-camera__permission button { margin: 28px 0 14px; padding: 15px 28px; border: 0; border-radius: 14px; background: #294e28; color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+.rig-camera__permission small { color: #7b8377; }
+.rig-notes { align-self: start; padding: 28px; border: 2px solid #d6d4c7; border-radius: 24px; background: rgba(255, 255, 255, .82); }
+.rig-notes__badge { display: inline-block; padding: 7px 11px; border-radius: 999px; background: #e8f1dd; color: #426825; font-weight: 700; }
+.rig-notes h2 { margin: 22px 0 14px; font-size: 25px; }
+.rig-notes ol { margin: 0; padding-left: 23px; color: #586453; line-height: 1.6; }
+.rig-notes li + li { margin-top: 10px; }
+.rig-notes p { margin: 24px 0 0; padding-top: 20px; border-top: 1px solid #dddace; color: #697364; line-height: 1.5; }
+
+.puppet-lab__workspace { width: min(1480px, calc(100% - 48px)); margin: 30px auto; display: grid; grid-template-columns: minmax(580px, 1.6fr) minmax(350px, .9fr); gap: 26px; }
+.puppet-stage { min-width: 0; }
+.puppet-stage__canvas { min-height: 690px; display: grid; place-items: center; overflow: hidden; border: 4px solid #294e28; border-radius: 24px; background-color: #ebeae4; background-image: linear-gradient(45deg, #e2e1da 25%, transparent 25%), linear-gradient(-45deg, #e2e1da 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e1da 75%), linear-gradient(-45deg, transparent 75%, #e2e1da 75%); background-size: 64px 64px; background-position: 0 0, 0 32px, 32px -32px, -32px 0; }
+.puppet-stage > p { margin: 14px 0 0; text-align: center; font-size: 17px; font-weight: 600; }
+.motion-avatar { width: auto; height: 610px; max-width: 88%; object-fit: contain; filter: drop-shadow(0 16px 12px rgba(43, 52, 29, .16)); transition: opacity 180ms ease, transform 220ms ease; }
+.motion-avatar--pingo { height: 620px; }
+.motion-avatar--rocko { height: 600px; }
+.motion-avatar--sequence { image-rendering: auto; transition: none; }
+
+.puppet-controls { align-self: start; border: 2px solid #d6d4c7; border-radius: 24px; background: rgba(255, 255, 255, .72); overflow: hidden; }
+.puppet-controls__avatars { padding: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; border-bottom: 1px solid #dddace; }
+.puppet-controls button { font-family: inherit; }
+.puppet-controls__avatars button { padding: 18px; border: 2px solid #d6d4c7; border-radius: 16px; background: #faf9f3; color: #203b1e; font-size: 21px; font-weight: 700; cursor: pointer; }
+.puppet-controls__avatars button.is-selected { border-color: #4f7b28; background: #f3f7e8; box-shadow: inset 0 0 0 2px rgba(79, 123, 40, .08); }
+.puppet-controls__explanation { padding: 32px 28px; }
+.puppet-controls__explanation h2 { margin: 0 0 10px; font-size: 23px; }
+.puppet-controls__explanation p { margin: 0; color: #63705d; font-size: 17px; line-height: 1.55; }
+.puppet-controls__poses { padding: 24px 26px 28px; border-top: 1px solid #dddace; }
+.puppet-controls__poses h2 { margin: 0 0 16px; text-align: center; font-size: 20px; }
+.puppet-controls__poses > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.puppet-controls__poses button { min-height: 106px; display: grid; place-items: center; gap: 6px; border: 2px solid #d6d4c7; border-radius: 16px; background: #faf9f3; color: #294522; font-size: 16px; font-weight: 700; cursor: pointer; }
+.puppet-controls__poses button span { font-size: 30px; }
+.puppet-controls__poses button.is-selected { border-color: #4f7b28; background: #f3f7e8; }
+.puppet-controls__poses--four > div { grid-template-columns: repeat(2, 1fr); }
+.puppet-controls__timeline { padding: 24px 26px 28px; border-top: 1px solid #dddace; }
+.puppet-controls__timeline > div { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 14px; color: #294522; font-size: 16px; }
+.puppet-controls__timeline input { width: 100%; accent-color: #4f7b28; cursor: pointer; }
+.puppet-controls__play { width: 100%; margin-top: 16px; padding: 13px 18px; border: 0; border-radius: 13px; background: #294e28; color: #fff; font-size: 17px; font-weight: 700; cursor: pointer; }
+.puppet-controls__play:hover { background: #1d3d1d; }
+
+@media (max-width: 980px) {
+  .puppet-lab__header { padding: 0 18px; grid-template-columns: 52px 1fr; }
+  .puppet-lab__status { display: none; }
+  .puppet-lab__workspace { width: min(720px, calc(100% - 28px)); grid-template-columns: 1fr; }
+  .puppet-stage__canvas { min-height: 600px; }
+  .motion-avatar { height: 540px; }
+  .puppet-lab__rig-workspace { width: min(760px, calc(100% - 28px)); grid-template-columns: 1fr; }
+  .rig-camera__viewport { min-height: 500px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-avatar { transition: none; }
+}
