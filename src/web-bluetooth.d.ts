@@ -19,6 +19,7 @@ interface BluetoothRemoteGATTCharacteristic {
 
 interface BluetoothRemoteGATTService {
   getCharacteristics(characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic[]>;
+  getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>;
 }
 
 interface BluetoothRemoteGATTServer {
@@ -32,6 +33,8 @@ interface BluetoothDevice {
   id: string;
   name?: string;
   gatt?: BluetoothRemoteGATTServer;
+  addEventListener(type: "gattserverdisconnected", listener: () => void): void;
+  removeEventListener(type: "gattserverdisconnected", listener: () => void): void;
 }
 
 interface BluetoothRequestDeviceFilter {
@@ -48,6 +51,7 @@ interface BluetoothRequestOptions {
 
 interface Bluetooth {
   requestDevice(options: BluetoothRequestOptions): Promise<BluetoothDevice>;
+  getAvailability?(): Promise<boolean>;
 }
 
 interface Navigator {

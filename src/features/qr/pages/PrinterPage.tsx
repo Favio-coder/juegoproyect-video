@@ -1,16 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BluetoothService } from "../services/BluetoothService";
-import { PrintService } from "../services/PrintService";
+import { useNiimbot } from "../hooks/useNiimbot";
 import { RewardService } from "../services/RewardService";
+import { PrintService } from "../services/PrintService";
+import { PrinterStageError } from "../types/printer.types";
+import PrinterStatus from "../components/PrinterStatus";
+import ConnectPrinterButton from "../components/ConnectPrinterButton";
+import PrintTestButton from "../components/PrintTestButton";
 
-type Phase =
-  | "idle"
-  | "connecting"
-  | "connected"
-  | "printing"
-  | "printed"
-  | "error";
+type PrintPhase = "idle" | "printing" | "printed";
 
 function createPatternCanvas(): HTMLCanvasElement {
   const s = 4;
@@ -60,15 +58,20 @@ function createPatternCanvas(): HTMLCanvasElement {
 
 export default function PrinterPage() {
   const navigate = useNavigate();
-  const btRef = useRef<BluetoothService | null>(null);
+  const {
+    status,
+    deviceName,
+    error,
+    adapterWarning,
+    supportHint,
+    connect,
+    disconnect,
+    getBluetoothService,
+  } = useNiimbot();
 
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [deviceName, setDeviceName] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [printPhase, setPrintPhase] = useState<PrintPhase>("idle");
   const [preview, setPreview] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
-
-  const supported = BluetoothService.isSupported();
 
   useEffect(() => {
     let cancelled = false;
@@ -92,34 +95,22 @@ export default function PrinterPage() {
       `[${new Date().toLocaleTimeString()}] ${message}`,
     ]);
 
-  const getBt = (): BluetoothService => {
-    if (!btRef.current) btRef.current = new BluetoothService();
-    return btRef.current;
-  };
-
-  const refreshDeviceName = () =>
-    setDeviceName(getBt().getDeviceName() ?? null);
-
   const handleConnect = async () => {
-    setError(null);
-    setPhase("connecting");
+    pushLog("Solicitando impresora NIIMBOT…");
     try {
-      await getBt().connect();
-      setPhase("connected");
-      refreshDeviceName();
-      pushLog("Impresora conectada");
+      await connect();
+      const name = getBluetoothService().getDeviceName() ?? "NIIMBOT";
+      pushLog(`Impresora conectada · ${name}`);
     } catch (cause) {
-      setPhase("error");
+      const stage = cause instanceof PrinterStageError ? cause.stage : null;
       const message = cause instanceof Error ? cause.message : String(cause);
-      setError(message);
-      pushLog(`Error al conectar: ${message}`);
+      pushLog(`Error de conexión (etapa: ${stage ?? "desconocida"}): ${message}`);
     }
   };
 
   const handleDisconnect = () => {
-    getBt().disconnect();
-    setPhase("idle");
-    setDeviceName(null);
+    disconnect();
+    setPrintPhase("idle");
     pushLog("Impresora desconectada");
   };
 
@@ -127,23 +118,20 @@ export default function PrinterPage() {
     canvas: HTMLCanvasElement,
     label: string
   ): Promise<void> => {
-    if (phase !== "connected") {
-      setError("Primero conecta la impresora");
-      setPhase("error");
+    if (status !== "connected") {
+      pushLog("Error: primero conecta la impresora");
       return;
     }
-    setError(null);
-    setPhase("printing");
+    setPrintPhase("printing");
     pushLog(`Imprimiendo: ${label}`);
     try {
-      const printer = new PrintService(getBt());
+      const printer = new PrintService(getBluetoothService());
       await printer.print(canvas);
-      setPhase("printed");
+      setPrintPhase("printed");
       pushLog("Impresión terminada");
     } catch (cause) {
-      setPhase("error");
+      setPrintPhase("idle");
       const message = cause instanceof Error ? cause.message : String(cause);
-      setError(message);
       pushLog(`Error al imprimir: ${message}`);
     }
   };
@@ -161,32 +149,8 @@ export default function PrinterPage() {
     await printCanvas(createPatternCanvas(), "Patrón de prueba");
   };
 
-  const phaseStyles: Record<
-    Phase,
-    { dot: string; label: string; text: string }
-  > = {
-    idle: { dot: "bg-slate-400", label: "Sin conectar", text: "text-slate-800" },
-    connecting: {
-      dot: "bg-amber-400 animate-pulse",
-      label: "Conectando…",
-      text: "text-amber-700",
-    },
-    connected: { dot: "bg-emerald-500", label: "Conectada", text: "text-emerald-700" },
-    printing: {
-      dot: "bg-amber-400 animate-pulse",
-      label: "Imprimiendo…",
-      text: "text-amber-700",
-    },
-    printed: { dot: "bg-emerald-500", label: "¡Impreso!", text: "text-emerald-700" },
-    error: { dot: "bg-rose-500", label: "Error", text: "text-rose-700" },
-  };
-
-  const status = phaseStyles[phase];
-  const connected = phase === "connected";
-  const busy = phase === "printing";
-
-  const buttonClass =
-    "rounded-2xl px-6 py-3 text-xl font-semibold shadow-lg transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed";
+  const connected = status === "connected";
+  const busy = printPhase === "printing";
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-sky-100 px-6 py-8">
@@ -204,50 +168,35 @@ export default function PrinterPage() {
       </header>
 
       <section className="mx-auto mt-8 max-w-4xl">
-        {!supported && (
+        {status === "unsupported" && (
           <p className="rounded-2xl bg-rose-100 p-4 text-lg font-semibold text-rose-700">
-            Web Bluetooth no está disponible en este navegador. Usa Chrome o
-            Edge.
+            {supportHint ??
+              "Este navegador no permite Web Bluetooth. Abre el proyecto con Google Chrome o Microsoft Edge."}
+          </p>
+        )}
+
+        {adapterWarning && (
+          <p className="mt-4 rounded-2xl bg-amber-100 p-4 text-lg font-semibold text-amber-700">
+            ⚠️ {adapterWarning}
           </p>
         )}
 
         <div className="mt-6 rounded-3xl bg-white p-6 shadow-xl">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="ml-1 flex items-center gap-3">
-              <span className={`h-4 w-4 rounded-full ${status.dot}`} />
-              <span className={`text-2xl font-bold ${status.text}`}>
-                {status.label}
-              </span>
-              {deviceName && (
-                <span className="text-lg font-medium text-slate-500">
-                  · {deviceName}
-                </span>
-              )}
-            </div>
+            <PrinterStatus status={status} deviceName={deviceName} />
             <div className="flex flex-wrap gap-3">
-              {connected ? (
-                <button
-                  onClick={() => void handleDisconnect()}
-                  disabled={busy}
-                  className={`${buttonClass} bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  Desconectar
-                </button>
-              ) : (
-                <button
-                  onClick={() => void handleConnect()}
-                  disabled={!supported || phase === "connecting"}
-                  className={`${buttonClass} bg-indigo-600 text-white hover:bg-indigo-700`}
-                >
-                  {phase === "connecting" ? "Conectando…" : "Conectar impresora"}
-                </button>
-              )}
+              <ConnectPrinterButton
+                status={status}
+                onConnect={() => void handleConnect()}
+                onDisconnect={handleDisconnect}
+              />
             </div>
           </div>
 
           {error && (
             <div className="mt-4 rounded-2xl bg-rose-50 p-4 text-lg font-semibold text-rose-700">
-              ⚠️ {error}
+              ⚠️ [etapa: {error.stage}] {error.message}
+              {error.errorName && ` (${error.errorName})`}
             </div>
           )}
 
@@ -265,20 +214,19 @@ export default function PrinterPage() {
             </div>
 
             <div className="flex flex-col justify-center gap-4">
-              <button
+              <PrintTestButton
+                label="Imprimir sticker de prueba"
+                icon="🏷"
                 onClick={() => void handlePrintSticker()}
                 disabled={!connected || busy}
-                className={`${buttonClass} bg-emerald-600 text-white hover:bg-emerald-700`}
-              >
-                🏷 Imprimir sticker de prueba
-              </button>
-              <button
+              />
+              <PrintTestButton
+                label="Imprimir patrón de prueba"
+                icon="📏"
+                variant="secondary"
                 onClick={() => void handlePrintPattern()}
                 disabled={!connected || busy}
-                className={`${buttonClass} bg-sky-600 text-white hover:bg-sky-700`}
-              >
-                📏 Imprimir patrón de prueba
-              </button>
+              />
             </div>
           </div>
         </div>

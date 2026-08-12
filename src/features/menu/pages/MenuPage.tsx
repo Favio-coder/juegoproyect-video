@@ -32,12 +32,12 @@ export default function MenuPage() {
     <main className="relative min-h-screen overflow-hidden">
       <Background />
 
-      <button
+      {/* <button
         onClick={() => navigate("/impresora")}
         className="absolute right-4 top-4 z-20 rounded-full bg-white/80 px-4 py-2 text-lg font-semibold text-slate-700 shadow-md backdrop-blur transition hover:bg-indigo-600 hover:text-white"
       >
         🖨 Impresora
-      </button>
+      </button> */}
 
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6">
         {step === "hidden" && (
