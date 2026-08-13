@@ -14,7 +14,6 @@ export type ChallengeId =
   | "right_hand"
   | "left_hand"
   | "both_hands"
-  | "t_pose"
   | "jumping_jacks"
   | "march";
 

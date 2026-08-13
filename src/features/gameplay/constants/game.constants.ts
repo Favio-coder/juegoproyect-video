@@ -10,21 +10,6 @@ function handUp(wrist: Landmark | undefined, shoulder: Landmark | undefined): bo
   return wrist.y < shoulder.y - 0.12;
 }
 
-function tPose(l: Landmark[]): boolean {
-  if (!l[11] || !l[12] || !l[15] || !l[16]) return false;
-  const shoulderWidth = Math.abs(l[11].x - l[12].x);
-  if (shoulderWidth <= 0) return false;
-  const shoulderY = (l[11].y + l[12].y) / 2;
-  const armOut = shoulderWidth * 1.1;
-  const nearY = (p: Landmark) => Math.abs(p.y - shoulderY) < 0.22;
-  return (
-    l[16].x > l[12].x + armOut &&
-    l[15].x < l[11].x - armOut &&
-    nearY(l[15]) &&
-    nearY(l[16])
-  );
-}
-
 const HOLD_SECONDS = 10;
 const HOLD_TIME_LIMIT = 30;
 
@@ -61,17 +46,6 @@ export const DIAGNOSTICS: PoseChallenge[] = [
     holdSeconds: HOLD_SECONDS,
     timeLimitSeconds: HOLD_TIME_LIMIT,
     isActive: (l) => handUp(l[16], l[12]) && handUp(l[15], l[11]),
-  },
-  {
-    id: "t_pose",
-    kind: "hold",
-    label: "¡Pose T!",
-    description: "Abre los brazos en forma de T",
-    emoji: "✳️",
-    repsToComplete: 0,
-    holdSeconds: HOLD_SECONDS,
-    timeLimitSeconds: HOLD_TIME_LIMIT,
-    isActive: (l) => tPose(l),
   },
 ];
 
@@ -133,7 +107,7 @@ export const PINGO_SPEECH = {
   introGreeting: (avatarName: string) =>
     `¡Hola! Soy ${avatarName}, tu guardián del movimiento.`,
   introMission:
-    "Primero haremos una prueba de diagnóstico levantando las manos y haciendo la pose T. Después polichinelas y marcha. ¿Estás listo?",
+    "Primero haremos una prueba de diagnóstico levantando cada mano y las dos juntas. Después polichinelas y marcha. ¿Estás listo?",
   showPose: "¡Intenta hacer este ejercicio!",
   success: [
     "¡Excelente! 🎉",
@@ -158,7 +132,7 @@ export function getIntroParts(
   const name = playerName && playerName.trim().length > 0 ? playerName.trim() : "amiguito";
   return {
     greeting: `¡Hola, ${name}! Soy ${avatarName}, tu guardián del movimiento.`,
-    plan: "Primero haremos una prueba de diagnóstico: levantarás cada mano y harás la pose T.",
+    plan: "Primero haremos una prueba de diagnóstico: levantarás cada mano y después las dos juntas.",
     goal: "Después haremos polichinelas y marcha. Completa las repeticiones para pasar al siguiente.",
     ready: "¿Estás listo para comenzar tu aventura?",
   };
