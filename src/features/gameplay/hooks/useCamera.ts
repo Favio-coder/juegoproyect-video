@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CameraService } from "../services/CameraService";
 
-export function useCamera(streamOverride?: MediaStream | null) {
+export function useCamera() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [loading, setLoading] = useState(true);
@@ -18,16 +18,6 @@ export function useCamera(streamOverride?: MediaStream | null) {
 
     const setup = async () => {
       try {
-        if (streamOverride) {
-          video.srcObject = streamOverride;
-          await video.play();
-          if (!cancelled) {
-            setLoading(false);
-            setError(null);
-          }
-          return;
-        }
-
         const stream = await service.startCamera();
 
         if (!cancelled && videoRef.current) {
@@ -50,11 +40,9 @@ export function useCamera(streamOverride?: MediaStream | null) {
 
     return () => {
       cancelled = true;
-      if (!streamOverride) {
-        service.stopCamera();
-      }
+      service.stopCamera();
     };
-  }, [streamOverride]);
+  }, []);
 
   return {
     videoRef,

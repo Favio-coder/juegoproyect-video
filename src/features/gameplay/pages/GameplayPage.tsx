@@ -11,7 +11,6 @@ import ChallengeModal from "../components/ChallengeModal";
 import LeafParticles from "../components/LeafParticles";
 import LeafProgress from "../components/LeafProgress";
 import PoseGuide from "../components/PoseGuide";
-import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import { useGame } from "../hooks/useGame";
 import { useCountdown } from "../hooks/useCountdown";
 import type { PoseResult } from "../types/pose.types";
@@ -21,7 +20,6 @@ import { useAppStore } from "../../../core/store/appStore";
 export default function GameplayPage() {
   const game = useGame();
   const selectedAvatar = useAppStore((s) => s.selectedAvatar) ?? "pingo";
-  const { remoteStream } = usePhoneConnection();
   const countdown = useCountdown(GAME_CONFIG.countdownSeconds, () => {
     game.onCountdownComplete();
   });
@@ -123,7 +121,6 @@ export default function GameplayPage() {
           }}
         >
           <CameraView
-            remoteStream={remoteStream}
             onPoseResult={handlePoseResult}
             avatar={selectedAvatar}
           />

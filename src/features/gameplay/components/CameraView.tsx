@@ -7,13 +7,12 @@ import type { AvatarId } from "../../../core/utils/avatarAssets";
 import type { PoseResult } from "../types/pose.types";
 
 interface CameraViewProps {
-  remoteStream?: MediaStream | null;
   onPoseResult?: (pose: PoseResult) => void;
   avatar: AvatarId;
 }
 
-export default function CameraView({ remoteStream, onPoseResult, avatar }: CameraViewProps) {
-  const { videoRef, loading, error } = useCamera(remoteStream);
+export default function CameraView({ onPoseResult, avatar }: CameraViewProps) {
+  const { videoRef, loading, error } = useCamera();
   const onPoseCallbackRef = useRef(onPoseResult);
 
   useEffect(() => {

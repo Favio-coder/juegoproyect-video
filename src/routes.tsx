@@ -4,13 +4,12 @@ import { createBrowserRouter } from "react-router-dom";
 
 const MenuPage = lazy(() => import("./features/menu/pages/MenuPage"));
 const GameplayPage = lazy(() => import("./features/gameplay/pages/GameplayPage"))
-const PhoneCameraPage = lazy(() => import("./features/qr/pages/PhoneCameraPage"))
 const PruebaPage = lazy(() => import("./features/gameplay/pages/PruebaPage"))
 const SupabaseTestPage = lazy(() => import("./features/supabase/pages/SupabaseTestPage"))
 const RankingPage = lazy(() => import("./features/ranking/pages/RankingPage"))
+const RewardPage = lazy(() => import("./features/reward/pages/RewardPage"))
 const DemoPage = lazy(() => import("./features/demo3d/pages/DemoPage"))
 const PuppetLabPage = lazy(() => import("./features/avatar/pages/PuppetLabPage"))
-const PrinterPage = lazy(() => import("./features/qr/pages/PrinterPage"))
 
 export const router = createBrowserRouter([
   {
@@ -42,11 +41,11 @@ export const router = createBrowserRouter([
     element: <RankingPage />,
   },
   {
-    path: "/impresora",
-    element: <PrinterPage />,
+    path: "/recompensa",
+    element: <RewardPage />,
   },
   {
-    path: "/connect/:sessionId",
-    element: <PhoneCameraPage />,
+    path: "/demo3d",
+    element: <DemoPage />,
   },
 ]);

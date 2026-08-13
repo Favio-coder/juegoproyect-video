@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
-import QRCodeCard from "../../qr/components/QRCodeCard";
-import ConnectionStatus from "../../qr/components/ConnectionStatus";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../../../core/store/appStore";
 import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
-import PrinterModal from "../../qr/components/PrinterModal";
 import { recordSession } from "../../supabase/services/supabaseService";
 import { isSupabaseConfigured } from "../../../core/services/supabaseClient";
+import { buildRewardUrl } from "../../../core/utils/reward";
+import RewardQRCard from "../../reward/components/RewardQRCard";
 
 interface GameOverScreenProps {
   score: number;
@@ -19,21 +18,16 @@ export default function GameOverScreen({
   totalRounds,
   onPlayAgain,
 }: GameOverScreenProps) {
-  const {
-    session,
-    status,
-    startListening,
-    stopListening,
-  } = usePhoneConnection();
-
+  const navigate = useNavigate();
   const [showQR, setShowQR] = useState(false);
-  const [showPrinter, setShowPrinter] = useState(false);
   const playerName = useAppStore((s) => s.playerName);
   const selectedAvatar = useAppStore((s) => s.selectedAvatar);
   const { src: happySvg, name } = useAvatarAsset("happy");
   const recordedRef = useRef(false);
 
   const greeting = playerName && playerName.trim().length > 0 ? playerName.trim() : "Campeón";
+  const avatarId = selectedAvatar === "rocko" ? "rocko" : "pingo";
+  const rewardUrl = buildRewardUrl({ name: greeting, points: score, avatar: avatarId });
 
   useEffect(() => {
     if (recordedRef.current) return;
@@ -53,19 +47,14 @@ export default function GameOverScreen({
     });
   }, [playerName, selectedAvatar, score, totalRounds]);
 
-  const handleShowQR = useCallback(() => {
-    startListening();
-    setShowQR(true);
-  }, [startListening]);
-
-  const handleCloseQR = useCallback(() => {
-    stopListening();
-    setShowQR(false);
-  }, [stopListening]);
-
   const handlePlayAgain = useCallback(() => {
     onPlayAgain();
   }, [onPlayAgain]);
+
+  const handleViewReward = useCallback(() => {
+    const url = new URL(rewardUrl);
+    navigate(`${url.pathname}${url.search}`);
+  }, [navigate, rewardUrl]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -174,13 +163,13 @@ export default function GameOverScreen({
         </button>
 
         <button
-          onClick={handleShowQR}
+          onClick={handleViewReward}
           style={{
             padding: "18px 40px",
             borderRadius: 16,
-            border: "1px solid #334155",
-            background: "transparent",
-            color: "white",
+            border: "none",
+            background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+            color: "#1e293b",
             fontSize: 20,
             fontWeight: 700,
             cursor: "pointer",
@@ -189,11 +178,11 @@ export default function GameOverScreen({
             gap: 10,
           }}
         >
-          📱 Conectar teléfono
+          🎁 Ver mi premio
         </button>
 
         <button
-          onClick={() => setShowPrinter(true)}
+          onClick={() => setShowQR(true)}
           style={{
             padding: "18px 40px",
             borderRadius: 16,
@@ -208,7 +197,7 @@ export default function GameOverScreen({
             gap: 10,
           }}
         >
-          🖨 Imprimir sticker
+          🔳 Ver código QR
         </button>
       </div>
 
@@ -216,7 +205,7 @@ export default function GameOverScreen({
         Presiona espacio o enter para jugar de nuevo
       </span>
 
-      {showQR && session && (
+      {showQR && (
         <div
           style={{
             position: "fixed",
@@ -229,26 +218,26 @@ export default function GameOverScreen({
             padding: 20,
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) handleCloseQR();
+            if (e.target === e.currentTarget) setShowQR(false);
           }}
         >
           <div
             style={{
               background: "white",
               borderRadius: 20,
-              padding: "36px 32px",
+              padding: "32px 28px",
               maxWidth: 380,
               width: "100%",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 20,
+              gap: 18,
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
               position: "relative",
             }}
           >
             <button
-              onClick={handleCloseQR}
+              onClick={() => setShowQR(false)}
               style={{
                 position: "absolute",
                 top: 12,
@@ -272,25 +261,29 @@ export default function GameOverScreen({
                 margin: 0,
               }}
             >
-              Conectar teléfono
+              Tu premio 🎉
             </h2>
 
-            <ConnectionStatus status={status} />
+            <RewardQRCard qrUrl={rewardUrl} avatar={avatarId} />
 
-            <QRCodeCard
-              qrUrl={session.qrUrl}
-              sessionId={session.sessionId}
-            />
+            <button
+              onClick={handleViewReward}
+              style={{
+                padding: "14px 30px",
+                borderRadius: 14,
+                border: "none",
+                background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                color: "#1e293b",
+                fontSize: 18,
+                fontWeight: 700,
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              🎁 Abrir mi premio
+            </button>
           </div>
         </div>
-      )}
-
-      {showPrinter && (
-        <PrinterModal
-          playerName={greeting}
-          exerciseCount={totalRounds}
-          onClose={() => setShowPrinter(false)}
-        />
       )}
 
       <style>{`

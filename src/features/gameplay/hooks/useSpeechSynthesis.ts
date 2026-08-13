@@ -19,6 +19,12 @@ export function useSpeechSynthesis() {
 
     const loadVoices = () => {
       voicesRef.current = window.speechSynthesis.getVoices();
+      if (import.meta.env.DEV) {
+        console.log(
+          "[voz] voces disponibles:",
+          voicesRef.current.map((v) => `${v.name} (${v.lang})`).join(" | ")
+        );
+      }
     };
     loadVoices();
     window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
@@ -34,15 +40,21 @@ export function useSpeechSynthesis() {
     const spanish = voices.filter((v) =>
       (v.lang ?? "").toLowerCase().startsWith("es")
     );
+    const source = spanish.length > 0 ? spanish : voices;
 
-    const pick = (list: SpeechSynthesisVoice[]) =>
-      list.find((v) => /Google español/i.test(v.name)) ??
-      list.find((v) => /español de Estados Unidos|Spanish/i.test(v.name)) ??
-      list.find((v) => /es-mx/i.test(v.lang ?? "")) ??
-      list.find((v) => /Microsoft.*(Sabina|Helena)/i.test(v.name)) ??
-      list[0];
+    const rank = (v: SpeechSynthesisVoice): number => {
+      const name = v.name;
+      const lang = (v.lang ?? "").toLowerCase();
+      if (/Google español de Estados Unidos/i.test(name)) return 1;
+      if (/Google español/i.test(name)) return 2;
+      if (/Microsoft.*(Helena|Sabina|Laura|Mónica|Marisol|Ximena)/i.test(name)) return 3;
+      if (/espa\u00f1ol de Estados Unidos|spanish/i.test(name)) return 4;
+      if (/es-mx/.test(lang)) return 5;
+      if (/(female|mujer|Helena|Sabina|Laura|Mónica|Marisol|Paulina|Dalia|Elvira|Ximena)/i.test(name)) return 6;
+      return 7;
+    };
 
-    return pick(spanish) ?? voices[0];
+    return source.slice().sort((a, b) => rank(a) - rank(b))[0] ?? null;
   }, []);
 
   const speak = useCallback(
@@ -55,8 +67,8 @@ export function useSpeechSynthesis() {
       const voice = pickVoice();
       if (voice) utterance.voice = voice;
       utterance.lang = "es-ES";
-      utterance.pitch = 1.4;
-      utterance.rate = 1.0;
+      utterance.pitch = 1.5;
+      utterance.rate = 0.95;
       utterance.volume = 1;
 
       utterance.onstart = () => setSpeaking(true);
