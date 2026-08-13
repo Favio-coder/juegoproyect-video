@@ -8,6 +8,7 @@ const PruebaPage = lazy(() => import("./features/gameplay/pages/PruebaPage"))
 const SupabaseTestPage = lazy(() => import("./features/supabase/pages/SupabaseTestPage"))
 const RankingPage = lazy(() => import("./features/ranking/pages/RankingPage"))
 const RewardPage = lazy(() => import("./features/reward/pages/RewardPage"))
+const NotFoundPage = lazy(() => import("./features/notfound/pages/NotFoundPage"))
 const DemoPage = lazy(() => import("./features/demo3d/pages/DemoPage"))
 const PuppetLabPage = lazy(() => import("./features/avatar/pages/PuppetLabPage"))
 
@@ -45,7 +46,7 @@ export const router = createBrowserRouter([
     element: <RewardPage />,
   },
   {
-    path: "/demo3d",
-    element: <DemoPage />,
+    path: "*",
+    element: <NotFoundPage />,
   },
 ]);
