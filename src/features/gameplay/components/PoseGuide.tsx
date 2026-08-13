@@ -6,6 +6,11 @@ interface PoseGuideProps {
 }
 
 export default function PoseGuide({ challenge, holdProgress }: PoseGuideProps) {
+  const remaining = Math.max(
+    0,
+    challenge.holdSeconds - Math.floor(holdProgress * challenge.holdSeconds)
+  );
+
   return (
     <div
       style={{
@@ -67,11 +72,11 @@ export default function PoseGuide({ challenge, holdProgress }: PoseGuideProps) {
       <span
         style={{
           color: "#cbd5e1",
-          fontSize: 12,
-          fontWeight: 500,
+          fontSize: 14,
+          fontWeight: 600,
         }}
       >
-        Mantén la pose...
+        Mantén la pose... {remaining}s
       </span>
     </div>
   );

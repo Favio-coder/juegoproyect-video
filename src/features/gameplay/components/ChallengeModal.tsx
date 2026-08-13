@@ -17,11 +17,14 @@ export default function ChallengeModal({ challenge, onAccept }: ChallengeModalPr
   const { src, name } = useAvatarAsset("advising");
   const { speak } = useSpeechSynthesis();
 
+  const isHold = challenge.kind === "hold";
+  const detail = isHold
+    ? `Mantén la pose durante ${challenge.holdSeconds} segundos.`
+    : `Debes hacer ${challenge.repsToComplete} repeticiones en ${challenge.timeLimitSeconds} segundos.`;
+
   useEffect(() => {
-    speak(
-      `${challenge.label}. ${challenge.description}. Debes hacer ${challenge.repsToComplete} repeticiones.`
-    );
-  }, [challenge, speak]);
+    speak(`${challenge.label}. ${challenge.description}. ${detail}`);
+  }, [challenge, speak, detail]);
 
   return (
     <GameModal
@@ -29,7 +32,7 @@ export default function ChallengeModal({ challenge, onAccept }: ChallengeModalPr
       avatarSrc={src}
       avatarAlt={`${name} aconsejando`}
       title={challenge.label}
-      message={`${challenge.description}. Debes hacer ${challenge.repsToComplete} repeticiones en ${challenge.timeLimitSeconds} segundos.`}
+      message={`${challenge.description}. ${detail}`}
       closeOnBackdrop={false}
       actions={[
         {

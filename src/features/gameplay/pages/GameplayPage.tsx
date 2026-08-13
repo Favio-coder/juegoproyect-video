@@ -10,6 +10,7 @@ import GameOverScreen from "../components/GameOverScreen";
 import ChallengeModal from "../components/ChallengeModal";
 import LeafParticles from "../components/LeafParticles";
 import LeafProgress from "../components/LeafProgress";
+import PoseGuide from "../components/PoseGuide";
 import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import { useGame } from "../hooks/useGame";
 import { useCountdown } from "../hooks/useCountdown";
@@ -55,7 +56,7 @@ export default function GameplayPage() {
     return (
       <GameOverScreen
         score={game.score}
-        totalRounds={game.totalRounds}
+        totalRounds={game.exerciseCount}
         onPlayAgain={game.resetGame}
       />
     );
@@ -66,6 +67,8 @@ export default function GameplayPage() {
   }
 
   const timeout = game.state === "timeout";
+  const challenge = game.currentChallenge;
+  const isHold = challenge?.kind === "hold";
   const pingoMessage =
     game.state === "showingPose" || game.state === "checkingPose"
       ? game.currentChallenge?.description ?? ""
@@ -76,7 +79,6 @@ export default function GameplayPage() {
       : "";
 
   const pingoMood = game.state === "success" ? "happy" : "idle";
-  const challenge = game.currentChallenge;
 
   return (
     <div
@@ -98,6 +100,9 @@ export default function GameplayPage() {
         timeLeft={game.timeLeft}
         reps={game.reps}
         repsToComplete={game.repsToComplete}
+        isHold={isHold}
+        holdProgress={game.holdProgress}
+        holdSeconds={challenge?.holdSeconds}
       />
 
       <div
@@ -123,8 +128,8 @@ export default function GameplayPage() {
             avatar={selectedAvatar}
           />
 
-          {game.state === "showingPose" && game.repProgress > 0 && (
-            <LeafParticles intensity={game.repProgress} />
+          {game.state === "showingPose" && (game.repProgress > 0 || game.holdProgress > 0) && (
+            <LeafParticles intensity={game.repProgress || game.holdProgress} />
           )}
 
           {game.state === "countdown" && (
@@ -200,7 +205,24 @@ export default function GameplayPage() {
             </div>
           )}
 
-          {!timeout && game.state === "showingPose" && challenge && (
+          {!timeout && game.state === "showingPose" && challenge && isHold && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 24,
+                left: 0,
+                right: 0,
+                zIndex: 45,
+                display: "flex",
+                justifyContent: "center",
+                padding: "0 16px",
+              }}
+            >
+              <PoseGuide challenge={challenge} holdProgress={game.holdProgress} />
+            </div>
+          )}
+
+          {!timeout && game.state === "showingPose" && challenge && !isHold && (
             <div
               style={{
                 position: "absolute",

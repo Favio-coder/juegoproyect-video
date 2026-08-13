@@ -16,8 +16,6 @@ export function interpretAvatarMotion(
   switch (challenge.id) {
     case "jumping_jacks":
       return "jumping";
-    case "squats":
-      return "squat";
     case "march":
       return "marching";
     default:

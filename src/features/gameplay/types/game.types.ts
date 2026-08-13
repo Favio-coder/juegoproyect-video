@@ -10,14 +10,24 @@ export type GameState =
   | "timeout"
   | "gameOver";
 
-export type ExerciseId = "jumping_jacks" | "squats" | "march";
+export type ChallengeId =
+  | "right_hand"
+  | "left_hand"
+  | "both_hands"
+  | "t_pose"
+  | "jumping_jacks"
+  | "march";
+
+export type ChallengeKind = "hold" | "reps";
 
 export interface PoseChallenge {
-  id: ExerciseId;
+  id: ChallengeId;
+  kind: ChallengeKind;
   label: string;
   description: string;
   emoji: string;
   repsToComplete: number;
+  holdSeconds: number;
   timeLimitSeconds: number;
   isActive: (landmarks: Landmark[]) => boolean;
 }

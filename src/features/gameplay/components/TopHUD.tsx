@@ -5,6 +5,9 @@ interface TopHUDProps {
   timeLeft: number;
   reps: number;
   repsToComplete: number;
+  isHold?: boolean;
+  holdProgress?: number;
+  holdSeconds?: number;
 }
 
 export default function TopHUD({
@@ -14,12 +17,16 @@ export default function TopHUD({
   timeLeft,
   reps,
   repsToComplete,
+  isHold = false,
+  holdProgress = 0,
+  holdSeconds = 0,
 }: TopHUDProps) {
   const fraction = totalRounds > 0 ? round / totalRounds : 0;
   const m = Math.floor(timeLeft / 60);
   const s = timeLeft % 60;
   const timer = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   const lowTime = timeLeft <= 10;
+  const holdRemaining = Math.max(0, holdSeconds - Math.floor(holdProgress * holdSeconds));
 
   return (
     <div
@@ -118,17 +125,35 @@ export default function TopHUD({
             border: "1px solid rgba(251,191,36,0.3)",
           }}
         >
-          <span style={{ fontSize: 20 }}>💪</span>
-          <span
-            style={{
-              color: "#fbbf24",
-              fontSize: 20,
-              fontWeight: 800,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {reps}/{repsToComplete}
-          </span>
+          {isHold ? (
+            <>
+              <span style={{ fontSize: 20 }}>⏳</span>
+              <span
+                style={{
+                  color: "#fbbf24",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {holdRemaining}s
+              </span>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: 20 }}>💪</span>
+              <span
+                style={{
+                  color: "#fbbf24",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {reps}/{repsToComplete}
+              </span>
+            </>
+          )}
         </div>
 
         <div
