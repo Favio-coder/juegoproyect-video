@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 import headSrc from "../../../assets/avatar/rig/pingo/head.png";
 import torsoSrc from "../../../assets/avatar/rig/pingo/torso.png";
 import upperArmSrc from "../../../assets/avatar/rig/pingo/upper-arm.png";
@@ -7,25 +7,35 @@ import handSrc from "../../../assets/avatar/rig/pingo/hand.png";
 import thighSrc from "../../../assets/avatar/rig/pingo/thigh.png";
 import shinSrc from "../../../assets/avatar/rig/pingo/shin.png";
 import footSrc from "../../../assets/avatar/rig/pingo/foot.png";
+import rockoHeadSrc from "../../../assets/avatar/rig/rocko/head.png";
+import rockoTorsoSrc from "../../../assets/avatar/rig/rocko/torso.png";
+import rockoUpperArmSrc from "../../../assets/avatar/rig/rocko/upper-arm.png";
+import rockoForearmSrc from "../../../assets/avatar/rig/rocko/forearm.png";
+import rockoHandSrc from "../../../assets/avatar/rig/rocko/hand.png";
+import rockoThighSrc from "../../../assets/avatar/rig/rocko/thigh.png";
+import rockoShinSrc from "../../../assets/avatar/rig/rocko/shin.png";
+import rockoFootSrc from "../../../assets/avatar/rig/rocko/foot.png";
+import type { AvatarId } from "../../../core/utils/avatarAssets";
 import type { Landmark, PoseResult } from "../../gameplay/types/pose.types";
 
 type Point = { x: number; y: number };
 type RigPart = "head" | "torso" | "upperArm" | "forearm" | "hand" | "thigh" | "shin" | "foot";
 
-const SOURCES: Record<RigPart, string> = {
-  head: headSrc, torso: torsoSrc, upperArm: upperArmSrc, forearm: forearmSrc,
-  hand: handSrc, thigh: thighSrc, shin: shinSrc, foot: footSrc,
+const SOURCES: Record<AvatarId, Record<RigPart, string>> = {
+  pingo: { head: headSrc, torso: torsoSrc, upperArm: upperArmSrc, forearm: forearmSrc, hand: handSrc, thigh: thighSrc, shin: shinSrc, foot: footSrc },
+  rocko: { head: rockoHeadSrc, torso: rockoTorsoSrc, upperArm: rockoUpperArmSrc, forearm: rockoForearmSrc, hand: rockoHandSrc, thigh: rockoThighSrc, shin: rockoShinSrc, foot: rockoFootSrc },
 };
-const images = new Map<RigPart, HTMLImageElement>();
+const images = new Map<string, HTMLImageElement>();
 const VISIBLE = 0.52;
 
-function imageFor(part: RigPart): HTMLImageElement | null {
-  const cached = images.get(part);
+function imageFor(avatar: AvatarId, part: RigPart): HTMLImageElement | null {
+  const key = `${avatar}:${part}`;
+  const cached = images.get(key);
   if (cached) return cached.complete && cached.naturalWidth ? cached : null;
   const image = new Image();
   image.decoding = "async";
-  image.src = SOURCES[part];
-  images.set(part, image);
+  image.src = SOURCES[avatar][part];
+  images.set(key, image);
   return null;
 }
 
@@ -44,11 +54,12 @@ function drawBetween(
   to: Point,
   widthRatio: number,
   mirrored: boolean,
+  maxWidth = Number.POSITIVE_INFINITY,
 ) {
   if (!image) return;
   const length = Math.hypot(to.x - from.x, to.y - from.y);
   if (length < 4) return;
-  const width = length * widthRatio;
+  const width = Math.min(length * widthRatio, maxWidth);
   ctx.save();
   ctx.translate(from.x, from.y);
   ctx.rotate(Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2);
@@ -74,11 +85,13 @@ function drawHand(
   elbow: Point,
   wrist: Point,
   mirrored: boolean,
+  maxHeight = Number.POSITIVE_INFINITY,
+  artworkPointsUp = false,
 ) {
   if (!image) return;
   const forearmLength = Math.hypot(wrist.x - elbow.x, wrist.y - elbow.y);
   if (forearmLength < 4) return;
-  const height = Math.max(58, forearmLength * 0.72);
+  const height = Math.min(maxHeight, Math.max(44, forearmLength * 0.58));
   const width = height * 0.74;
   const directionX = (wrist.x - elbow.x) / forearmLength;
   const directionY = (wrist.y - elbow.y) / forearmLength;
@@ -89,7 +102,10 @@ function drawHand(
 
   ctx.save();
   ctx.translate(center.x, center.y);
-  ctx.rotate(Math.atan2(directionY, directionX) - Math.PI / 2);
+  ctx.rotate(
+    Math.atan2(directionY, directionX) +
+      (artworkPointsUp ? Math.PI / 2 : -Math.PI / 2),
+  );
   if (mirrored) ctx.scale(-1, 1);
   ctx.drawImage(image, -width / 2, -height / 2, width, height);
   ctx.restore();
@@ -113,10 +129,12 @@ function drawSkeleton(ctx: CanvasRenderingContext2D, points: Array<Point | null>
 }
 
 export default function PingoRigCanvas({
+  avatar,
   pose,
   videoRef,
   showSkeleton,
 }: {
+  avatar: AvatarId;
   pose: PoseResult | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   showSkeleton: boolean;
@@ -161,14 +179,18 @@ export default function PingoRigCanvas({
     ctx.save();
     ctx.globalAlpha = 0.94;
     ctx.imageSmoothingEnabled = true;
+    const rockoPartMax = Math.min(width * 0.055, 74);
 
     if (hipsReady) {
-      if (p(23) && p(25)) drawBetween(ctx, imageFor("thigh"), p(23)!, p(25)!, 0.7, false);
-      if (p(24) && p(26)) drawBetween(ctx, imageFor("thigh"), p(24)!, p(26)!, 0.7, true);
-      if (p(25) && p(27)) drawBetween(ctx, imageFor("shin"), p(25)!, p(27)!, 0.58, false);
-      if (p(26) && p(28)) drawBetween(ctx, imageFor("shin"), p(26)!, p(28)!, 0.58, true);
-      if (p(27)) drawCentered(ctx, imageFor("foot"), { x: p(27)!.x - 8, y: p(27)!.y + 10 }, 62, 48);
-      if (p(28)) drawCentered(ctx, imageFor("foot"), { x: p(28)!.x + 8, y: p(28)!.y + 10 }, 62, 48);
+      const thighWidth = avatar === "rocko" ? 0.46 : 0.7;
+      const maxLegWidth = avatar === "rocko" ? rockoPartMax : Number.POSITIVE_INFINITY;
+      if (p(23) && p(25)) drawBetween(ctx, imageFor(avatar, "thigh"), p(23)!, p(25)!, thighWidth, false, maxLegWidth);
+      if (p(24) && p(26)) drawBetween(ctx, imageFor(avatar, "thigh"), p(24)!, p(26)!, thighWidth, true, maxLegWidth);
+      if (p(25) && p(27)) drawBetween(ctx, imageFor(avatar, "shin"), p(25)!, p(27)!, avatar === "rocko" ? 0.44 : 0.58, false, maxLegWidth);
+      if (p(26) && p(28)) drawBetween(ctx, imageFor(avatar, "shin"), p(26)!, p(28)!, avatar === "rocko" ? 0.44 : 0.58, true, maxLegWidth);
+      const footSize = avatar === "rocko" ? { width: Math.min(width * 0.075, 92), height: Math.min(width * 0.058, 68) } : { width: 62, height: 48 };
+      if (p(27)) drawCentered(ctx, imageFor(avatar, "foot"), { x: p(27)!.x - 8, y: p(27)!.y + 10 }, footSize.width, footSize.height);
+      if (p(28)) drawCentered(ctx, imageFor(avatar, "foot"), { x: p(28)!.x + 8, y: p(28)!.y + 10 }, footSize.width, footSize.height);
     }
 
     if (shouldersReady && hipsReady) {
@@ -176,29 +198,70 @@ export default function PingoRigCanvas({
       const hipMid = middle(p(23)!, p(24)!);
       const shoulderWidth = Math.hypot(p(12)!.x - p(11)!.x, p(12)!.y - p(11)!.y);
       const torsoLength = Math.hypot(hipMid.x - shoulderMid.x, hipMid.y - shoulderMid.y);
-      drawCentered(ctx, imageFor("torso"), middle(shoulderMid, hipMid), shoulderWidth * 1.52, torsoLength * 1.42);
+      const torsoWidth = avatar === "rocko" ? Math.min(shoulderWidth * 1.08, width * 0.32) : shoulderWidth * 1.52;
+      const torsoHeight = avatar === "rocko" ? Math.min(torsoLength * 1.28, height * 0.45) : torsoLength * 1.42;
+      drawCentered(ctx, imageFor(avatar, "torso"), middle(shoulderMid, hipMid), torsoWidth, torsoHeight);
+    } else if (avatar === "rocko" && shouldersReady) {
+      const shoulderMid = middle(p(11)!, p(12)!);
+      const shoulderWidth = Math.hypot(p(12)!.x - p(11)!.x, p(12)!.y - p(11)!.y);
+      const torsoWidth = Math.min(shoulderWidth * 1.04, width * 0.3);
+      const torsoHeight = Math.min(shoulderWidth * 1.22, height * 0.4);
+      drawCentered(
+        ctx,
+        imageFor(avatar, "torso"),
+        { x: shoulderMid.x, y: shoulderMid.y + torsoHeight * 0.42 },
+        torsoWidth,
+        torsoHeight,
+      );
     }
 
     if (shouldersReady) {
-      if (p(13)) drawBetween(ctx, imageFor("upperArm"), p(11)!, p(13)!, 0.72, false);
-      if (p(14)) drawBetween(ctx, imageFor("upperArm"), p(12)!, p(14)!, 0.72, true);
-      if (p(13) && p(15)) drawBetween(ctx, imageFor("forearm"), p(13)!, p(15)!, 0.62, false);
-      if (p(14) && p(16)) drawBetween(ctx, imageFor("forearm"), p(14)!, p(16)!, 0.62, true);
-      if (p(13) && p(15)) drawHand(ctx, imageFor("hand"), p(13)!, p(15)!, false);
-      if (p(14) && p(16)) drawHand(ctx, imageFor("hand"), p(14)!, p(16)!, true);
+      const armRatio = avatar === "rocko" ? 0.3 : 0.72;
+      const forearmRatio = avatar === "rocko" ? 0.3 : 0.62;
+      const maxArmWidth = avatar === "rocko" ? rockoPartMax : Number.POSITIVE_INFINITY;
+      if (p(13)) drawBetween(ctx, imageFor(avatar, "upperArm"), p(11)!, p(13)!, armRatio, false, maxArmWidth);
+      if (p(14)) drawBetween(ctx, imageFor(avatar, "upperArm"), p(12)!, p(14)!, armRatio, true, maxArmWidth);
+      if (p(13) && p(15)) drawBetween(ctx, imageFor(avatar, "forearm"), p(13)!, p(15)!, forearmRatio, false, maxArmWidth);
+      if (p(14) && p(16)) drawBetween(ctx, imageFor(avatar, "forearm"), p(14)!, p(16)!, forearmRatio, true, maxArmWidth);
+      const maxHandHeight = avatar === "rocko" ? Math.min(width * 0.065, 82) : Number.POSITIVE_INFINITY;
+      if (p(13) && p(15)) drawHand(ctx, imageFor(avatar, "hand"), p(13)!, p(15)!, false, maxHandHeight, avatar === "rocko");
+      if (p(14) && p(16)) drawHand(ctx, imageFor(avatar, "hand"), p(14)!, p(16)!, true, maxHandHeight, avatar === "rocko");
     }
 
     const face = points.slice(0, 11).filter((point): point is Point => point !== null);
     if (face.length >= 2) {
       const faceCenter = face.reduce((sum, point) => ({ x: sum.x + point.x / face.length, y: sum.y + point.y / face.length }), { x: 0, y: 0 });
-      const headWidth = shouldersReady
-        ? Math.hypot(p(12)!.x - p(11)!.x, p(12)!.y - p(11)!.y) * 1.5
-        : Math.max(90, Math.max(...face.map((point) => point.x)) - Math.min(...face.map((point) => point.x))) * 3.2;
-      drawCentered(ctx, imageFor("head"), { x: faceCenter.x, y: faceCenter.y - headWidth * 0.13 }, headWidth, headWidth * 0.98);
+      const faceSpan = p(7) && p(8)
+        ? Math.hypot(p(8)!.x - p(7)!.x, p(8)!.y - p(7)!.y)
+        : p(2) && p(5)
+          ? Math.hypot(p(5)!.x - p(2)!.x, p(5)!.y - p(2)!.y) * 1.65
+          : Math.max(...face.map((point) => point.x)) - Math.min(...face.map((point) => point.x));
+      const shoulderSpan = shouldersReady
+        ? Math.hypot(p(12)!.x - p(11)!.x, p(12)!.y - p(11)!.y)
+        : width;
+      const headWidth = avatar === "rocko"
+        ? Math.max(86, Math.min(faceSpan * 1.72, shoulderSpan * 0.92, width * 0.23))
+        : shouldersReady
+          ? shoulderSpan * 1.5
+          : Math.max(90, faceSpan * 3.2);
+      drawCentered(ctx, imageFor(avatar, "head"), { x: faceCenter.x, y: faceCenter.y - headWidth * 0.13 }, headWidth, headWidth * (avatar === "rocko" ? 0.9 : 0.98));
     }
     ctx.restore();
     if (showSkeleton) drawSkeleton(ctx, points);
-  }, [pose, showSkeleton, videoRef]);
+  }, [avatar, pose, showSkeleton, videoRef]);
 
-  return <canvas ref={canvasRef} className="rig-camera__canvas" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="rig-camera__canvas"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+      }}
+    />
+  );
 }
+

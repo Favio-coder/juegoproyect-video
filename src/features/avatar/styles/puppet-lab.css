@@ -45,6 +45,9 @@
 .rig-camera__permission button { margin: 28px 0 14px; padding: 15px 28px; border: 0; border-radius: 14px; background: #294e28; color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
 .rig-camera__permission small { color: #7b8377; }
 .rig-notes { align-self: start; padding: 28px; border: 2px solid #d6d4c7; border-radius: 24px; background: rgba(255, 255, 255, .82); }
+.rig-notes__avatars { margin-bottom: 22px; padding: 5px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-radius: 13px; background: #e7e8df; }
+.rig-notes__avatars button { padding: 11px 8px; border: 0; border-radius: 9px; background: transparent; color: #53604d; font: inherit; font-weight: 700; cursor: pointer; }
+.rig-notes__avatars button.is-selected { background: #294e28; color: #fff; box-shadow: 0 3px 9px rgba(24, 51, 21, .18); }
 .rig-notes__badge { display: inline-block; padding: 7px 11px; border-radius: 999px; background: #e8f1dd; color: #426825; font-weight: 700; }
 .rig-notes h2 { margin: 22px 0 14px; font-size: 25px; }
 .rig-notes ol { margin: 0; padding-left: 23px; color: #586453; line-height: 1.6; }

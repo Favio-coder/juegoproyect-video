@@ -53,18 +53,23 @@ export default function PuppetLabPage() {
       {mode === "rig" ? (
         <div className="puppet-lab__rig-workspace">
           {cameraEnabled ? (
-            <RigCameraLab />
+            <RigCameraLab avatar={avatar} />
           ) : (
             <section className="rig-camera__permission">
               <span>◉</span>
               <h2>Prueba corporal aislada</h2>
-              <p>Activa la cámara para mover las piezas de Pingo con hombros, codos, muñecas, cadera, rodillas y tobillos.</p>
+              <p>Activa la cámara para mover las piezas de Pingo o Rocko con hombros, codos, muñecas, cadera, rodillas y tobillos.</p>
               <button onClick={() => setCameraEnabled(true)}>Activar cámara</button>
               <small>Esta pantalla no modifica ni ejecuta la interfaz de /juego.</small>
             </section>
           )}
           <aside className="rig-notes">
-            <span className="rig-notes__badge">Fase 1 · Pingo</span>
+            <div className="rig-notes__avatars" aria-label="Personaje articulado">
+              {(["pingo", "rocko"] as AvatarId[]).map((id) => (
+                <button key={id} className={avatar === id ? "is-selected" : ""} onClick={() => setAvatar(id)}>{id === "pingo" ? "Pingo" : "Rocko"}</button>
+              ))}
+            </div>
+            <span className="rig-notes__badge">Personaje · {avatar === "pingo" ? "Pingo" : "Rocko"}</span>
             <h2>Qué estamos validando</h2>
             <ol>
               <li>Que las articulaciones sigan tus extremidades.</li>
@@ -72,7 +77,7 @@ export default function PuppetLabPage() {
               <li>Que aparezca por partes al entrar a cámara.</li>
               <li>Que el movimiento no tiemble ni se corte.</li>
             </ol>
-            <p>Rocko se conectará cuando esta estructura quede aprobada.</p>
+            <p>Cambia de personaje sin reiniciar la cámara ni el detector corporal.</p>
           </aside>
         </div>
       ) : (
