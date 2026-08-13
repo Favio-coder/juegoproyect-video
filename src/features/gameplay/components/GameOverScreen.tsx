@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import QRCodeCard from "../../qr/components/QRCodeCard";
 import ConnectionStatus from "../../qr/components/ConnectionStatus";
 import { useAppStore } from "../../../core/store/appStore";
 import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
 import PrinterModal from "../../qr/components/PrinterModal";
+import { recordSession } from "../../supabase/services/supabaseService";
+import { isSupabaseConfigured } from "../../../core/services/supabaseClient";
 
 interface GameOverScreenProps {
   score: number;
@@ -27,9 +29,29 @@ export default function GameOverScreen({
   const [showQR, setShowQR] = useState(false);
   const [showPrinter, setShowPrinter] = useState(false);
   const playerName = useAppStore((s) => s.playerName);
+  const selectedAvatar = useAppStore((s) => s.selectedAvatar);
   const { src: happySvg, name } = useAvatarAsset("happy");
+  const recordedRef = useRef(false);
 
   const greeting = playerName && playerName.trim().length > 0 ? playerName.trim() : "Campeón";
+
+  useEffect(() => {
+    if (recordedRef.current) return;
+    if (!isSupabaseConfigured) return;
+    const nameToSave = playerName?.trim();
+    if (!nameToSave) return;
+
+    recordedRef.current = true;
+    void recordSession({
+      playerName: nameToSave,
+      avatar: selectedAvatar,
+      score,
+      totalRounds,
+      completedRounds: totalRounds,
+    }).then((res) => {
+      if (!res.ok && res.error) console.error("No se pudo guardar la partida:", res.error);
+    });
+  }, [playerName, selectedAvatar, score, totalRounds]);
 
   const handleShowQR = useCallback(() => {
     startListening();

@@ -44,6 +44,12 @@ export default function MenuPage() {
           <>
             <Logo />
             <PlayButton onClick={() => handleSetStep("name")} />
+            <button
+              onClick={() => navigate("/ranking")}
+              className="mt-4 rounded-full bg-white/95 px-8 py-3 text-xl font-black text-[#FA981B] shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(250,152,27,0.5)] active:scale-95"
+            >
+              🏆 Ver ranking
+            </button>
           </>
         )}
 
