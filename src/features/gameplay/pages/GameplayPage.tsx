@@ -19,6 +19,7 @@ import { useAppStore } from "../../../core/store/appStore";
 export default function GameplayPage() {
   const game = useGame();
   const playerName = useAppStore((s) => s.playerName);
+  const selectedAvatar = useAppStore((s) => s.selectedAvatar) ?? "pingo";
   const { remoteStream } = usePhoneConnection();
   const countdown = useCountdown(GAME_CONFIG.countdownSeconds, () => {
     game.onCountdownComplete();
@@ -167,7 +168,11 @@ export default function GameplayPage() {
             overflow: "hidden",
           }}
         >
-          <CameraView remoteStream={remoteStream} onPoseResult={handlePoseResult} />
+          <CameraView
+            remoteStream={remoteStream}
+            onPoseResult={handlePoseResult}
+            avatar={selectedAvatar}
+          />
 
           {game.state === "showingPose" && game.repProgress > 0 && (
             <LeafParticles intensity={game.repProgress} />

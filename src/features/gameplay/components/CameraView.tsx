@@ -1,15 +1,18 @@
 import { useEffect, useRef } from "react";
 import { useCamera } from "../hooks/useCamera";
 import { usePoseDetection } from "../hooks/usePoseDetection";
-import PoseCanvas from "./PoseCanvas";
+import PingoRigCanvas from "../../avatar/components/PingoRigCanvas";
+import RockoRigCanvas from "../../avatar/components/RockoRigCanvas";
+import type { AvatarId } from "../../../core/utils/avatarAssets";
 import type { PoseResult } from "../types/pose.types";
 
 interface CameraViewProps {
   remoteStream?: MediaStream | null;
   onPoseResult?: (pose: PoseResult) => void;
+  avatar: AvatarId;
 }
 
-export default function CameraView({ remoteStream, onPoseResult }: CameraViewProps) {
+export default function CameraView({ remoteStream, onPoseResult, avatar }: CameraViewProps) {
   const { videoRef, loading, error } = useCamera(remoteStream);
   const onPoseCallbackRef = useRef(onPoseResult);
 
@@ -86,7 +89,11 @@ export default function CameraView({ remoteStream, onPoseResult }: CameraViewPro
       )}
 
       {!loading && !error && (
-        <PoseCanvas pose={pose} videoRef={videoRef} />
+        avatar === "rocko" ? (
+          <RockoRigCanvas pose={pose} videoRef={videoRef} showSkeleton={false} />
+        ) : (
+          <PingoRigCanvas avatar="pingo" pose={pose} videoRef={videoRef} showSkeleton={false} />
+        )
       )}
     </div>
   );
