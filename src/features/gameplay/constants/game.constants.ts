@@ -73,6 +73,10 @@ export const PINGO_SPEECH = {
     "Completa las repeticiones de cada ejercicio para pasar al siguiente. ¿Listo?",
   ],
   countdown: "Preparándote...",
+  introGreeting: (avatarName: string) =>
+    `¡Hola! Soy ${avatarName}, tu guardián del movimiento.`,
+  introMission:
+    "Hoy haremos polichinelas, sentadillas y marcha. Completa las repeticiones de cada ejercicio para pasar al siguiente. ¿Estás listo para comenzar tu aventura?",
   showPose: "¡Intenta hacer este ejercicio!",
   success: [
     "¡Excelente! 🎉",
@@ -85,11 +89,22 @@ export const PINGO_SPEECH = {
   gameOver: "¡Lo lograste! Eres un verdadero guardián del movimiento.",
 };
 
-export function getIntroSpeech(playerName?: string): string {
-  if (playerName && playerName.trim().length > 0) {
-    return `¡Hola, ${playerName.trim()}! Soy Pingo, tu guardián del movimiento. Hoy haremos polichinelas, sentadillas y marcha. Completa las repeticiones de cada ejercicio para pasar al siguiente. ¿Estás listo para comenzar tu aventura?`;
-  }
-  return PINGO_SPEECH.intro.join(" ");
+export function getIntroSpeech(playerName?: string, avatarName = "Pingo"): string {
+  const parts = getIntroParts(playerName, avatarName);
+  return `${parts.greeting} ${parts.plan} ${parts.goal} ${parts.ready}`;
+}
+
+export function getIntroParts(
+  playerName?: string,
+  avatarName = "Pingo"
+): { greeting: string; plan: string; goal: string; ready: string } {
+  const name = playerName && playerName.trim().length > 0 ? playerName.trim() : "amiguito";
+  return {
+    greeting: `¡Hola, ${name}! Soy ${avatarName}, tu guardián del movimiento.`,
+    plan: "Hoy haremos polichinelas, sentadillas y marcha.",
+    goal: "Completa las repeticiones de cada ejercicio para pasar al siguiente.",
+    ready: "¿Estás listo para comenzar tu aventura?",
+  };
 }
 
 export function getRandomSuccessPhrase(playerName?: string): string {

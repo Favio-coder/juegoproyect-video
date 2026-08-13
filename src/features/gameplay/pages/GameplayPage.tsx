@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import ForestBackground from "../components/ForestBackground";
 import CameraView from "../components/CameraView";
 import PenguinCoach from "../components/PenguinCoach";
+import StoryIntro from "../components/StoryIntro";
 import TopHUD from "../components/TopHUD";
 import CountdownOverlay from "../components/CountdownOverlay";
 import SuccessAnimation from "../components/SuccessAnimation";
@@ -13,12 +14,10 @@ import { usePhoneConnection } from "../../qr/hooks/usePhoneConnection";
 import { useGame } from "../hooks/useGame";
 import { useCountdown } from "../hooks/useCountdown";
 import type { PoseResult } from "../types/pose.types";
-import { GAME_CONFIG, getIntroSpeech } from "../constants/game.constants";
-import { useAppStore } from "../../../core/store/appStore";
+import { GAME_CONFIG } from "../constants/game.constants";
 
 export default function GameplayPage() {
   const game = useGame();
-  const playerName = useAppStore((s) => s.playerName);
   const { remoteStream } = usePhoneConnection();
   const countdown = useCountdown(GAME_CONFIG.countdownSeconds, () => {
     game.onCountdownComplete();
@@ -37,15 +36,10 @@ export default function GameplayPage() {
     }
   }, [game.state, countdown]);
 
-  const handleStart = useCallback(() => {
-    game.startGame();
-  }, [game]);
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault();
-      if (game.state === "intro") game.startGame();
-      else if (game.state === "challengeIntro") game.onChallengeAccept();
+      if (game.state === "challengeIntro") game.onChallengeAccept();
       else if (game.state === "timeout") game.onTimeoutComplete();
     }
   }, [game]);
@@ -66,53 +60,7 @@ export default function GameplayPage() {
   }
 
   if (game.state === "intro") {
-    return (
-      <div
-        style={{
-          position: "relative",
-          height: "100dvh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-          overflow: "hidden",
-        }}
-      >
-        <ForestBackground />
-        <div
-          style={{
-            position: "relative",
-            zIndex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 36,
-          }}
-        >
-          <PenguinCoach key="intro" message={getIntroSpeech(playerName)} mood="idle" size="lg" />
-          <button
-            onClick={handleStart}
-            style={{
-              padding: "20px 60px",
-              borderRadius: 18,
-              border: "none",
-              background: "linear-gradient(135deg, #22c55e, #16a34a)",
-              color: "white",
-              fontSize: 24,
-              fontWeight: 800,
-              cursor: "pointer",
-              boxShadow: "0 8px 32px rgba(34,197,94,0.3)",
-            }}
-          >
-            ¡Comenzar!
-          </button>
-          <span style={{ color: "#cbd5e1", fontSize: 18, fontWeight: 600 }}>
-            Presiona espacio o enter
-          </span>
-        </div>
-      </div>
-    );
+    return <StoryIntro onStart={game.startGame} />;
   }
 
   const timeout = game.state === "timeout";
