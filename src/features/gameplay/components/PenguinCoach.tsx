@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import panelSvg from "../../../assets/paneles/PanelMensaje.svg";
 import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
-import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 
 interface PenguinCoachProps {
   message: string;
@@ -11,7 +10,6 @@ interface PenguinCoachProps {
 
 export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoachProps) {
   const { src, name } = useAvatarAsset(mood);
-  const { speak } = useSpeechSynthesis();
   const [charCount, setCharCount] = useState(0);
 
   useEffect(() => {
@@ -29,10 +27,6 @@ export default function PenguinCoach({ message, mood, size = "sm" }: PenguinCoac
 
     return () => clearInterval(interval);
   }, [message]);
-
-  useEffect(() => {
-    if (message.trim().length > 0) speak(message);
-  }, [message, speak]);
 
   const displayedMessage = message.slice(0, charCount);
   const isTyping = charCount < message.length;

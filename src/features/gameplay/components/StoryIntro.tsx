@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import ForestBackground from "./ForestBackground";
 import { useAppStore } from "../../../core/store/appStore";
 import { useAvatarAsset } from "../../../core/hooks/useAvatarAsset";
-import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import { getIntroParts } from "../constants/game.constants";
 import panelSvg from "../../../assets/paneles/PanelMensaje.svg";
 
@@ -16,7 +15,6 @@ export default function StoryIntro({ onStart }: StoryIntroProps) {
   const selectedAvatar = useAppStore((s) => s.selectedAvatar);
   const avatarName = selectedAvatar === "rocko" ? "Rocko" : "Pingo";
   const { src } = useAvatarAsset("happy");
-  const { speak, stop, muted, setMuted } = useSpeechSynthesis();
 
   const [step, setStep] = useState(1);
 
@@ -32,21 +30,6 @@ export default function StoryIntro({ onStart }: StoryIntroProps) {
     }
     setStep((prev) => prev + 1);
   }, [isLast, onStart]);
-
-  const handleSound = useCallback(() => {
-    if (muted) {
-      setMuted(false);
-      speak(currentText);
-    } else {
-      setMuted(true);
-      stop();
-    }
-  }, [muted, setMuted, speak, stop, currentText]);
-
-  useEffect(() => {
-    speak(currentText);
-    return () => stop();
-  }, [step, speak, stop, currentText]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,31 +58,6 @@ export default function StoryIntro({ onStart }: StoryIntroProps) {
       }}
     >
       <ForestBackground />
-
-      <button
-        onClick={handleSound}
-        aria-label={muted ? "Activar voz" : "Silenciar voz"}
-        style={{
-          position: "absolute",
-          top: 18,
-          right: 18,
-          zIndex: 20,
-          width: 64,
-          height: 64,
-          borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.4)",
-          background: "rgba(255,255,255,0.18)",
-          backdropFilter: "blur(8px)",
-          color: "white",
-          fontSize: 30,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {muted ? "🔇" : "🔊"}
-      </button>
 
       <div
         className="story-intro-wrap"

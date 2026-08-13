@@ -1,8 +1,6 @@
-import { useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AVATAR_ASSETS } from "../../../core/utils/avatarAssets";
 import { useAppStore } from "../../../core/store/appStore";
-import { useSpeechSynthesis } from "../../gameplay/hooks/useSpeechSynthesis";
 
 const CONFETTI = ["🎉", "⭐", "🎊", "✨", "🏅", "🌟"];
 
@@ -28,27 +26,6 @@ export default function RewardPage() {
       : "pingo";
   const avatarName = avatarId === "rocko" ? "Rocko" : "Pingo";
 
-  const { speak, stop, muted, setMuted } = useSpeechSynthesis();
-
-  const message = hasParams
-    ? `¡Felicidades ${name}! Obtuviste ${points} puntos. ¡Eres un guardián del movimiento!`
-    : "¡Hola! Este código no es válido.";
-
-  useEffect(() => {
-    speak(message);
-    return () => stop();
-  }, [speak, stop, message]);
-
-  const handleSound = useCallback(() => {
-    if (muted) {
-      setMuted(false);
-      speak(message);
-    } else {
-      setMuted(true);
-      stop();
-    }
-  }, [muted, setMuted, speak, stop, message]);
-
   return (
     <div
       style={{
@@ -67,31 +44,6 @@ export default function RewardPage() {
         textAlign: "center",
       }}
     >
-      <button
-        onClick={handleSound}
-        aria-label={muted ? "Activar voz" : "Silenciar voz"}
-        style={{
-          position: "absolute",
-          top: 18,
-          right: 18,
-          zIndex: 20,
-          width: 60,
-          height: 60,
-          borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.4)",
-          background: "rgba(255,255,255,0.18)",
-          backdropFilter: "blur(8px)",
-          color: "white",
-          fontSize: 28,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {muted ? "🔇" : "🔊"}
-      </button>
-
       {CONFETTI.map((emoji, i) => (
         <span
           key={i}
